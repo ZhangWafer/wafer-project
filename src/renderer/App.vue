@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <firstPage id="firstPage">
-
     </firstPage>
   </div>
 </template>
@@ -21,6 +20,6 @@ export default {
 <style>
 /* CSS */
 #firstPage {
-  height: 100%;
+    height: 100%;
 }
 </style>

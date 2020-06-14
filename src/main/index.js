@@ -23,6 +23,9 @@ function createWindow() {
     height: 563,
     useContentSize: true,
     width: 1000,
+    center: true,
+    fullscreen: false,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false
