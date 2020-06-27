@@ -11,6 +11,9 @@
 import firstPage from '@/components/firstPage'
 import one from '@/components/one'
 import cookerPage from '@/components/cookerPage'
+import configData from '@/config.json'
+
+window.configData = configData
 
 export default {
   name: 'wafer-project',
@@ -24,6 +27,10 @@ export default {
 </script>
 
 <style>
+#app {
+    font-family: 'Helvetica Neue', Helvetica, 'Hiragino Sans GB',
+        'Microsoft YaHei', Arial, sans-serif;
+}
 /* CSS */
 #firstPage {
     height: 100%;
