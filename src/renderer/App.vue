@@ -2,7 +2,8 @@
   <div id="app">
     <!-- <firstPage id="firstPage">
     </firstPage> -->
-    <one></one>
+    <!-- <one></one> -->
+    <router-view></router-view>
     <!-- <cookerPage></cookerPage> -->
   </div>
 </template>

@@ -2,9 +2,10 @@
   <div>
     <el-container v-loading="load">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
-        <el-col :span="4">&nbsp</el-col>
+        <el-col :span="4">456</el-col>
         <el-col :span="16">
-          <el-tag style="font-size:18px">自助点餐系统</el-tag>
+          <el-tag style="font-size:18px">自助点餐系统 <el-button @click="test">ssssss</el-button>
+          </el-tag>
         </el-col>
 
         <el-col :span="4">
@@ -55,7 +56,7 @@
                   round
                   plain
                   class="buttonclass"
-                  :disabled="false"
+                  :disabled="!switchValue[index]"
                   @click="addFun(item.Name,item.Price,item.PcPrice,item.Id)">
                   <el-row>
                     <el-col :span="24"
@@ -113,9 +114,11 @@
 <script>
 import axios from 'axios'
 import Vue from 'vue'
+// import { ipcMain } from 'electron'
 axios.defaults.baseURL = 'http://localhost:7878' // 关键代码
 
 Vue.prototype.$ajax = axios
+
 export default {
   data: function () {
     return {
@@ -135,11 +138,25 @@ export default {
       configData: window.configData, // 设备号
       nowOrderManName: '',
       nowOrderManLeftMoney: 0,
-      informationNum: ''
+      informationNum: '',
+      switchValue: [true],
+      childWin: null
     }
   },
   mounted: function () {
-    console.log('ssss')
+    // eslint-disable-next-line no-unused-vars
+    // window.sonWindow = window.open('/#/cook')
+    window.addEventListener('message', (msg) => {
+      console.log('接收到的消息,', msg.data)
+      if (msg.data != undefined) {
+        this.switchValue = msg.data.switchValue
+      }
+    })
+
+    // ipcMain.on('send-msg-to-main', (event, args) => {
+    //   console.log('主进程接收到的数据', args)
+    //   event.reply('send-msg-to-render', '这是主进程的问候')
+    // })
   },
   watch: {
     allsum() {
@@ -156,6 +173,9 @@ export default {
   },
 
   methods: {
+    test() {
+      this.childWin.postMessage('父窗口发送消息')
+    },
     priceCalculate(arrItem) {
       // eslint-disable-next-line no-unused-vars
       var sum = 0
@@ -287,6 +307,8 @@ export default {
       }
     },
     enterOrder() {
+      this.childWin = window.open('/#/cook')
+      this.childWin.postMessage('父窗口发送消息')
       // 请求是否在排餐时段
       var inOrderTimeBool = this.timeJudge()
       if (inOrderTimeBool != 'None') {
@@ -390,6 +412,10 @@ export default {
       }).then(res => {
         this.movie = res.data.cookbooks
         this.getMeadlId = res.data.cookbookSetInDate.Id
+        this.switchValue = []
+        this.movie.forEach(element => {
+          this.switchValue.push(false)
+        })
         console.log('clickfun:', res)
         console.log('取得菜品:', res.data.cookbooks[0].Name)
         console.log('取得价格:', res.data.cookbooks[0].Price)
