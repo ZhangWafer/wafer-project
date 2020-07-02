@@ -56,7 +56,7 @@
                   plain
                   class="buttonclass"
                   :disabled="false"
-                  @click="addFun(item.Name,item.Price,item.PcPrice)">
+                  @click="addFun(item.Name,item.Price,item.PcPrice,item.Id)">
                   <el-row>
                     <el-col :span="24"
                       style="font-size:16px;font-weight:bold">
@@ -134,7 +134,8 @@ export default {
       SNid: window.configData.snNumber,
       configData: window.configData, // 设备号
       nowOrderManName: '',
-      nowOrderManLeftMoney: 0
+      nowOrderManLeftMoney: 0,
+      informationNum: ''
     }
   },
   mounted: function () {
@@ -251,7 +252,14 @@ export default {
               })
               break
           }
-          console.log('午晚餐价格:', ypriceSum)
+          console.log('午晚餐总价格:', ypriceSum)
+          var payPrice = parseFloat(ypriceSum) - this.freeDNPrice
+          console.log('扣费后价格：', payPrice)
+          if (payPrice > 0) {
+            this.submitFun()
+          } else {
+            payPrice = 0
+          }
           break
         // ////////////////////////////////
         default:
@@ -297,6 +305,7 @@ export default {
           this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
           this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
           this.nowOrderManName = res.data.PcInfo.Name
+          this.informationNum = res.data.PcInfo.InformationNum
           this.nowOrderManLeftMoney = res.data.PcInfo.Amount
 
           // this.getMeadlId = res.data.
@@ -332,21 +341,43 @@ export default {
     },
 
     // 添加菜品方法
-    addFun(nameIn, price, yprice) {
+    addFun(nameIn, price, yprice, foodId) {
       const jsonData = {
         foodName: '',
         price: '',
-        yprice: ''
+        yprice: '',
+        foodId: ''
       }
       if (this.movieselected.findIndex(value => value.foodName === nameIn) === -1) {
         jsonData.foodName = nameIn
         jsonData.price = price
         jsonData.yprice = yprice
+        jsonData.foodId = foodId
         this.movieselected.push(jsonData)
         console.log(this.movieselected)
       } else {
         this.$message.error('优惠价只可点一份')
       }
+    },
+    getFoodsIds() {
+      var allIds = ''
+      this.movieselected.forEach(element => {
+        allIds += element.Id + ','
+      })
+      return allIds.substring(0, allIds.length - 1)
+    },
+    submitFun() {
+      axios.get('/Interface/Synchronize/BuffetSynchronize.ashx', {
+        params: {
+          informationNum: '66666666666', // this.informationNum,
+          cookbookSetInDateId: this.getMeadlId,
+          cookbookIds: this.getFoodsIds(),
+          isMilk: 'false',
+          createDate: '2020-06-27'
+        }
+      }).then(res => {
+        console.log('clickfun:', res)
+      })
     },
     // 获取菜单
     clickFun() {
