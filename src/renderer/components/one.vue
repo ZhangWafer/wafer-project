@@ -2,9 +2,18 @@
   <div>
     <el-container v-loading="load">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
-        <el-col :span="4">456</el-col>
+        <el-col :span="4">
+          <el-tag type="success"
+            style="margin-left:-70px;width:120px;font-size:16px">
+            牛奶
+            <el-switch v-model="isMilk"
+              active-color="#13ce66"
+              inactive-color="#ff4949">
+            </el-switch>
+          </el-tag>
+        </el-col>
         <el-col :span="16">
-          <el-tag style="font-size:18px">自助点餐系统 <el-button @click="test">ssssss</el-button>
+          <el-tag style="font-size:18px">自助点餐系统
           </el-tag>
         </el-col>
 
@@ -114,6 +123,7 @@
 <script>
 import axios from 'axios'
 import Vue from 'vue'
+
 // import { ipcMain } from 'electron'
 axios.defaults.baseURL = 'http://localhost:7878' // 关键代码
 
@@ -139,20 +149,26 @@ export default {
       nowOrderManName: '',
       nowOrderManLeftMoney: 0,
       informationNum: '',
-      switchValue: [true],
-      childWin: null
+      switchValue: [true, true],
+      childWin: null,
+      isFirstTime: true,
+      isMilk: false, // isMilk确认是否点牛奶，isFirstMilk确认这个人之前是否点过牛奶
+      isFirstMilk: false
     }
   },
   mounted: function () {
     // eslint-disable-next-line no-unused-vars
     // window.sonWindow = window.open('/#/cook')
+    console.log('当前主页位置：', window.location.href)
+    this.childWin = window.open(window.location.href + 'cook')
+
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data != undefined) {
         this.switchValue = msg.data.switchValue
       }
     })
-
+    // window.open('/#/cook')
     // ipcMain.on('send-msg-to-main', (event, args) => {
     //   console.log('主进程接收到的数据', args)
     //   event.reply('send-msg-to-render', '这是主进程的问候')
@@ -173,6 +189,17 @@ export default {
   },
 
   methods: {
+    confirmPrice() {
+      this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        return true
+      }).catch(() => {
+        return false
+      })
+    },
     test() {
       this.childWin.postMessage('父窗口发送消息')
     },
@@ -263,6 +290,20 @@ export default {
                   ypriceSum += element.price
                 }
               })
+              this.sendMenuMeg()
+              // if (this.confirmPrice()) {
+              //   this.$message({
+              //     type: 'success',
+              //     message: '消费成功!'
+              //   })
+              //   this.sendMenuMeg()
+              // } else {
+              //   this.$message({
+              //     type: 'info',
+              //     message: '已取消'
+              //   })
+              // }
+
               break
             // //////小于四个菜//////////
             default:
@@ -270,16 +311,35 @@ export default {
               this.movieSelected.forEach(element => {
                 ypriceSum += element.yprice
               })
+              this.sendMenuMeg()
+              // if (this.confirmPrice()) {
+              //   console.log('按确定')
+              //   this.$message({
+              //     type: 'success',
+              //     message: '消费成功!'
+              //   })
+              //
+              // } else {
+              //   console.log('按取消')
+              //   this.$message({
+              //     type: 'info',
+              //     message: '已取消'
+              //   })
+              // }
               break
           }
           console.log('午晚餐总价格:', ypriceSum)
           var payPrice = parseFloat(ypriceSum) - this.freeDNPrice
           console.log('扣费后价格：', payPrice)
-          if (payPrice > 0) {
+          // 小于免费金额的化为免费，价格0
+          if (payPrice < 0) { payPrice = 0 }
+
+          if (this.nowOrderManLeftMoney - payPrice >= 0) {
             this.submitFun()
           } else {
-            payPrice = 0
+            this.$message.error('抱歉~您的余额不足')
           }
+          this.allsum = payPrice
           break
         // ////////////////////////////////
         default:
@@ -289,6 +349,10 @@ export default {
       function sortby(a, b) {
         return b.yprice - a.yprice
       }
+    },
+    sendMenuMeg() {
+      this.fatherDataSend(false, this.movieselected, this.isMilk)
+      this.movieselected = []
     },
     timeBoolChange(booltime) {
       switch (booltime) {
@@ -306,9 +370,16 @@ export default {
           break
       }
     },
+    fatherDataSend(boolValue, foodSelected, isMilk) {
+      var fatherData = {
+        enter: boolValue,
+        foodSelected: foodSelected,
+        isMilk: isMilk
+      }
+      this.childWin.postMessage(fatherData)
+    },
     enterOrder() {
-      this.childWin = window.open('/#/cook')
-      this.childWin.postMessage('父窗口发送消息')
+      this.fatherDataSend(true)
       // 请求是否在排餐时段
       var inOrderTimeBool = this.timeJudge()
       if (inOrderTimeBool != 'None') {
@@ -322,6 +393,7 @@ export default {
             cookbookSetInDateId: '5'// this.getMeadlId
           }
         }).then(res => {
+          console.log(res.data)
           this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
           this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
           this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
@@ -329,19 +401,9 @@ export default {
           this.nowOrderManName = res.data.PcInfo.Name
           this.informationNum = res.data.PcInfo.InformationNum
           this.nowOrderManLeftMoney = res.data.PcInfo.Amount
-
-          // this.getMeadlId = res.data.
-          console.log('enterfun:', res)
-          console.log('取得菜品:', res.data.cookbooks[0].Name)
-          console.log('取得价格:', res.data.cookbooks[0].Price)
+          this.isFirstTime = res.data.IsFristOrderMeal
+          this.isFirstMilk = res.data.isFirstMilk
         })
-
-        // //////模拟取人是否有资格点餐
-        // axios.get("http://127.0.0.1:5000/api").then(res =>{
-        // this.movie = res.data.data;
-        // });
-        // 设置当前人员的优惠价格
-
         this.dialogVisible = false
       }
     },
@@ -370,15 +432,27 @@ export default {
         yprice: '',
         foodId: ''
       }
-      if (this.movieselected.findIndex(value => value.foodName === nameIn) === -1) {
-        jsonData.foodName = nameIn
-        jsonData.price = price
-        jsonData.yprice = yprice
-        jsonData.foodId = foodId
-        this.movieselected.push(jsonData)
-        console.log(this.movieselected)
+      if (this.isFirstTime) {
+        if (this.movieselected.findIndex(value => value.foodName === nameIn) === -1) {
+          jsonData.foodName = nameIn
+          jsonData.price = price
+          jsonData.yprice = yprice
+          jsonData.foodId = foodId
+          this.movieselected.push(jsonData)
+          console.log(this.movieselected)
+        } else {
+          this.$message.error('优惠价只可点一份')
+        }
       } else {
-        this.$message.error('优惠价只可点一份')
+        if (this.movieselected.length <= 12) {
+          jsonData.foodName = nameIn
+          jsonData.price = price
+          jsonData.yprice = yprice
+          jsonData.foodId = foodId
+          this.movieselected.push(jsonData)
+        } else {
+          this.$message.error('抱歉，您点的菜品数量过多')
+        }
       }
     },
     getFoodsIds() {
@@ -414,11 +488,8 @@ export default {
         this.getMeadlId = res.data.cookbookSetInDate.Id
         this.switchValue = []
         this.movie.forEach(element => {
-          this.switchValue.push(false)
+          this.switchValue.push(true)
         })
-        console.log('clickfun:', res)
-        console.log('取得菜品:', res.data.cookbooks[0].Name)
-        console.log('取得价格:', res.data.cookbooks[0].Price)
       })
     }
   }

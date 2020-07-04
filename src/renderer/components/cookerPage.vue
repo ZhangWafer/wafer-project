@@ -3,21 +3,54 @@
     <el-container>
       <el-container>
         <el-aside width="200px"
-          style="background:#FBFBFB;">
+          style="background:#FBFBFB;position:relative">
           <el-row style="margin-top:10px">
             <el-tag type="success"
               style="width:200px">
               本次菜品
-              <el-button @click="changeSwitchValue">button</el-button>
+            </el-tag>
+          </el-row>
+          <el-row style="margin-top:10px">
+            <el-col :span="24"
+              v-for="(item,index) in foodSelected1"
+              :key="'orderdFood'+index"
+              style="height:30px;margin-bottom:10px;">
+              <el-tag :key="item.foodName"
+                style="font-size:16px;width:160px;"
+                :disable-transitions="false">
+                {{item.foodName}}
+              </el-tag>
+            </el-col>
+          </el-row>
+          <el-row style="position:absolute;bottom:0;">
+            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:18px">
+              {{isMilk1?'有牛奶':'无牛奶'}}
             </el-tag>
           </el-row>
         </el-aside>
         <el-aside width="200px"
-          style="background:#FEFAFF;margin-left:5px;margin-right:5px">
+          style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative">
           <el-row style="margin-top:10px">
             <el-tag type="warning"
               style="width:200px">
               上次菜品
+            </el-tag>
+          </el-row>
+          <el-row style="margin-top:10px">
+            <el-col :span="24"
+              v-for="(item,index) in foodSelected2"
+              :key="'orderdFood2'+index"
+              style="height:30px;margin-bottom:10px;">
+              <el-tag :key="item.foodName"
+                style="font-size:16px;width:160px;"
+                :disable-transitions="false">
+                {{item.foodName}}
+              </el-tag>
+            </el-col>
+          </el-row>
+          <el-row style="position:absolute;bottom:0;">
+            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:18px">
+              {{isMilk2?'有牛奶':'无牛奶'}}
             </el-tag>
           </el-row>
         </el-aside>
@@ -62,13 +95,25 @@ export default {
     return {
       switchvalue: [true],
       cookBook: [],
-      dialogVisible: true
+      dialogVisible: true,
+      enableSwitch: false,
+      foodSelected1: [],
+      foodSelected2: [],
+      isMilk1: false,
+      isMilk2: false
     }
   },
   mounted: function () {
     this.getFun()
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
+      if (msg.data.enter) {
+        this.enableSwitch = msg.data.enter
+      }
+      this.foodSelected2 = this.foodSelected1
+      this.foodSelected1 = msg.data.foodSelected
+      this.isMilk2 = this.isMilk1
+      this.isMilk1 = msg.data.isMilk
       // if (msg.data != undefined) {
       //   this.switchValue = msg.data.switchValue
       // }
@@ -76,7 +121,9 @@ export default {
   },
   watch: {
     switchvalue() {
-      console.log(this.switchValue)
+      if (this.enableSwitch) {
+        this.changeSwitchValue()
+      }
     },
     jsonData: {
       deep: true,

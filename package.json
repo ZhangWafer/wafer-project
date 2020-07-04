@@ -55,8 +55,11 @@
   "dependencies": {
     "axios": "^0.18.0",
     "element-ui": "^2.13.2",
+    "eslint": "^4.19.1",
+    "eslint-plugin-vue": "^6.2.2",
     "vue": "^2.5.16",
-    "vue-electron": "^1.0.6"
+    "vue-electron": "^1.0.6",
+    "vue-router": "^3.3.4"
   },
   "devDependencies": {
     "ajv": "^6.5.0",
