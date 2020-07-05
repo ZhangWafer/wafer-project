@@ -86,22 +86,29 @@
           <el-footer style="background-color:#ECF5FF;">
             <el-row>
               <el-col :span="12">
-                <el-tag style="font-size:16px">当前点餐人：{{nowOrderManName}}</el-tag>
+                <el-tag style="font-size:18px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
-              <el-col :span="12">
-                <el-tag style="font-size:16px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+              <el-col :span="10">
+                <el-tag style="font-size:18px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+              </el-col>
+              <el-col :span="1">
+                <el-button @click="settingPageBool=true">
+                  <i class="el-icon-s-tools"></i>
+                </el-button>
               </el-col>
             </el-row>
           </el-footer>
         </el-container>
       </el-container>
     </el-container>
+    <!-- 点餐进入窗口 -->
     <el-dialog title="自助点餐系统"
       :visible.sync="dialogVisible"
       width="30%"
       :show-close="false"
       center
-      :before-close="handleClose">
+      :close-on-click-modal='false'
+      :close-on-press-escape='false'>
       <el-row style="text-align:center;font-size:18px;">
         点击按钮进入点餐
       </el-row>
@@ -118,20 +125,55 @@
         </el-row>
       </span>
     </el-dialog>
+    <!-- 设置窗口 -->
+    <el-dialog title="设置"
+      :visible.sync="settingPageBool"
+      width="30%"
+      :show-close="false"
+      center>
+      <el-row style="text-align:center;font-size:18px;"
+        v-for="(item,index) in configDataLocal"
+        :key="'config'+index">
+        <el-col :span="12">
+          <el-tag style="width:120px">{{index}}</el-tag>
+        </el-col>
+        <el-col :span="12">
+          <el-input :value="item"
+            v-model="configDataLocal[index]"></el-input>
+        </el-col>
+      </el-row>
+      <span slot="footer"
+        class="dialog-footer">
+        <el-row>
+          <el-col :span="24">
+            <el-button type="primary"
+              style="width:80%  "
+              @click="test()">
+              保存设置
+            </el-button>
+            <el-button @click="test2"></el-button>
+          </el-col>
+        </el-row>
+      </span>
+    </el-dialog>
   </div>
+
 </template>
 <script>
 import axios from 'axios'
 import Vue from 'vue'
+import configData from '@/config.json'
+import fs from 'fs'
+const sss = require('d:/config.json')
 
-// import { ipcMain } from 'electron'
-axios.defaults.baseURL = 'http://localhost:7878' // 关键代码
+axios.defaults.baseURL = configData.baseUrl // 关键代码
 
 Vue.prototype.$ajax = axios
 
 export default {
   data: function () {
     return {
+      settingPageBool: false,
       dialogVisible: true,
       movieselected: [],
       show2: true,
@@ -153,10 +195,14 @@ export default {
       childWin: null,
       isFirstTime: true,
       isMilk: false, // isMilk确认是否点牛奶，isFirstMilk确认这个人之前是否点过牛奶
-      isFirstMilk: false
+      isFirstMilk: false,
+      milkPrice: 5,
+      configDataLocal: sss,
+      configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url']
     }
   },
   mounted: function () {
+    this.getMilkPrice()
     // eslint-disable-next-line no-unused-vars
     // window.sonWindow = window.open('/#/cook')
     console.log('当前主页位置：', window.location.href)
@@ -168,6 +214,8 @@ export default {
         this.switchValue = msg.data.switchValue
       }
     })
+
+    this.readConfig()
     // window.open('/#/cook')
     // ipcMain.on('send-msg-to-main', (event, args) => {
     //   console.log('主进程接收到的数据', args)
@@ -189,19 +237,38 @@ export default {
   },
 
   methods: {
-    confirmPrice() {
-      this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        return true
-      }).catch(() => {
-        return false
+    test2() {
+      console.log(this.configDataLocal)
+    },
+    getMilkPrice() {
+      axios.get('Interface/Common/GetMilkPrice.ashx').then(res => {
+        console.log(res)
       })
     },
+    readConfig() {
+      var aaa = null
+      fs.readFile('d:/config.json', 'utf-8', (err, data) => {
+        if (err) {
+          console.log('文件读取失败', err)
+        } else {
+          console.log(Object.assign({}, JSON.parse(data)))
+          aaa = Object.assign({}, JSON.parse(data))
+          // var loadConfig = JSON.parse(data)
+        }
+      })
+
+      console.log('本地配置：', aaa)
+    },
     test() {
-      this.childWin.postMessage('父窗口发送消息')
+      console.log(this.configDataLocal)
+      // fs.writeFile('d:/config.json', JSON.stringify(this.configDataLocal), err => {
+      //   if (err) {
+      //     console.log('write file error!')
+      //   } else {
+      //     console.log('add note successfully!')
+      //   }
+      // })
+      // console.log('this.settingPageBool', this.settingPageBool)
     },
     priceCalculate(arrItem) {
       // eslint-disable-next-line no-unused-vars
@@ -290,19 +357,6 @@ export default {
                   ypriceSum += element.price
                 }
               })
-              this.sendMenuMeg()
-              // if (this.confirmPrice()) {
-              //   this.$message({
-              //     type: 'success',
-              //     message: '消费成功!'
-              //   })
-              //   this.sendMenuMeg()
-              // } else {
-              //   this.$message({
-              //     type: 'info',
-              //     message: '已取消'
-              //   })
-              // }
 
               break
             // //////小于四个菜//////////
@@ -311,35 +365,40 @@ export default {
               this.movieSelected.forEach(element => {
                 ypriceSum += element.yprice
               })
-              this.sendMenuMeg()
-              // if (this.confirmPrice()) {
-              //   console.log('按确定')
-              //   this.$message({
-              //     type: 'success',
-              //     message: '消费成功!'
-              //   })
-              //
-              // } else {
-              //   console.log('按取消')
-              //   this.$message({
-              //     type: 'info',
-              //     message: '已取消'
-              //   })
-              // }
+
               break
           }
+
           console.log('午晚餐总价格:', ypriceSum)
           var payPrice = parseFloat(ypriceSum) - this.freeDNPrice
           console.log('扣费后价格：', payPrice)
           // 小于免费金额的化为免费，价格0
           if (payPrice < 0) { payPrice = 0 }
-
+          // 总价减去免费金额10元
           if (this.nowOrderManLeftMoney - payPrice >= 0) {
             this.submitFun()
           } else {
             this.$message.error('抱歉~您的余额不足')
           }
+          // 价格加上牛奶价格
+          if (this.isMilk) {
+            payPrice += this.milkPrice
+          }
+
           this.allsum = payPrice
+
+          this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // 确定
+            console.log('确定')
+            this.sendMenuMeg()
+          }).catch(() => {
+            // 取消
+            console.log('取消')
+          })
           break
         // ////////////////////////////////
         default:
