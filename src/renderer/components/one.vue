@@ -2,9 +2,9 @@
   <div>
     <el-container v-loading="load">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
-        <el-col :span="4">
+        <el-col :span="3">
           <el-tag type="success"
-            style="margin-left:-70px;width:120px;font-size:16px">
+            style="width:80%;font-size:16px">
             牛奶
             <el-switch v-model="isMilk"
               active-color="#13ce66"
@@ -12,13 +12,13 @@
             </el-switch>
           </el-tag>
         </el-col>
-        <el-col :span="16">
+        <el-col :span="17">
           <el-tag style="font-size:18px">自助点餐系统
           </el-tag>
         </el-col>
 
         <el-col :span="4">
-          <el-tag style="font-size:18px">早餐</el-tag>
+          <p></p> <!-- <el-tag style="font-size:18px">早餐</el-tag> -->
         </el-col>
       </el-header>
       <el-container>
@@ -46,7 +46,7 @@
 
           <el-row style="position:absolute;bottom:0px;width:100%;">
             <el-button type="danger"
-              style="width:100%;height:60px"
+              style="width:100%;height:60px;font-size:18px"
               @click="endOrder">
               结算
             </el-button>
@@ -92,7 +92,8 @@
                 <el-tag style="font-size:18px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
               </el-col>
               <el-col :span="1">
-                <el-button @click="settingPageBool=true">
+                <el-button @click="settingPageBool=true"
+                  style="margin-right:-140px">
                   <i class="el-icon-s-tools"></i>
                 </el-button>
               </el-col>
@@ -122,6 +123,7 @@
               进入
             </el-button>
           </el-col>
+
         </el-row>
       </span>
     </el-dialog>
@@ -134,7 +136,8 @@
       <el-row style="text-align:center;font-size:18px;"
         v-for="(item,index) in configDataLocal"
         :key="'config'+index">
-        <el-col :span="12">
+        <el-col :span="12"
+          style="margin-left:-20px">
           <el-tag style="width:120px">{{index}}</el-tag>
         </el-col>
         <el-col :span="12">
@@ -148,10 +151,9 @@
           <el-col :span="24">
             <el-button type="primary"
               style="width:80%  "
-              @click="test()">
+              @click="saveSetting()">
               保存设置
             </el-button>
-            <el-button @click="test2"></el-button>
           </el-col>
         </el-row>
       </span>
@@ -162,11 +164,10 @@
 <script>
 import axios from 'axios'
 import Vue from 'vue'
-import configData from '@/config.json'
 import fs from 'fs'
-const sss = require('d:/config.json')
+const localConfig = require('d:/config.json')
 
-axios.defaults.baseURL = configData.baseUrl // 关键代码
+axios.defaults.baseURL = localConfig.baseUrl // 关键代码
 
 Vue.prototype.$ajax = axios
 
@@ -178,16 +179,16 @@ export default {
       movieselected: [],
       show2: true,
       load: false,
-      allsum: 0,
+      allsum: parseFloat(0),
       movie: [],
       nowTimeMealBool: '',
       getMeadlId: '', // 当前餐次id
       freeBFPrice: 8, // 早餐全免金额
       maxBFPrice: 12, // 早餐优惠金额
-      freeDNPrice: 18, // 午晚餐优惠金额
+      freeDNPrice: 0, // 午晚餐优惠金额
       freeFoodNum: 4, // 中晚餐优惠价菜品数量
-      SNid: window.configData.snNumber,
-      configData: window.configData, // 设备号
+      SNid: localConfig.snNumber,
+      configData: localConfig, // 设备号
       nowOrderManName: '',
       nowOrderManLeftMoney: 0,
       informationNum: '',
@@ -197,7 +198,7 @@ export default {
       isMilk: false, // isMilk确认是否点牛奶，isFirstMilk确认这个人之前是否点过牛奶
       isFirstMilk: false,
       milkPrice: 5,
-      configDataLocal: sss,
+      configDataLocal: localConfig,
       configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url']
     }
   },
@@ -214,13 +215,8 @@ export default {
         this.switchValue = msg.data.switchValue
       }
     })
-
+    // 读取配置文件
     this.readConfig()
-    // window.open('/#/cook')
-    // ipcMain.on('send-msg-to-main', (event, args) => {
-    //   console.log('主进程接收到的数据', args)
-    //   event.reply('send-msg-to-render', '这是主进程的问候')
-    // })
   },
   watch: {
     allsum() {
@@ -259,15 +255,15 @@ export default {
 
       console.log('本地配置：', aaa)
     },
-    test() {
+    saveSetting() {
       console.log(this.configDataLocal)
-      // fs.writeFile('d:/config.json', JSON.stringify(this.configDataLocal), err => {
-      //   if (err) {
-      //     console.log('write file error!')
-      //   } else {
-      //     console.log('add note successfully!')
-      //   }
-      // })
+      fs.writeFile('d:/config.json', JSON.stringify(this.configDataLocal), err => {
+        if (err) {
+          console.log('write file error!')
+        } else {
+          console.log('add note successfully!')
+        }
+      })
       // console.log('this.settingPageBool', this.settingPageBool)
     },
     priceCalculate(arrItem) {
@@ -301,7 +297,7 @@ export default {
         parseInt(dt[1].split(':')[0]) * 60 + parseInt(dt[1].split(':')[1])
       // var lt = this.configData.1t.split("-");
       // var dt = this.configData.dt.split("-");
-      console.log(nowCount)
+      console.log('nowCount', nowCount)
       if (nowCount > bt1 && nowCount < bt2) {
         console.log('当前是早餐时段')
         return 'bt'
@@ -309,8 +305,8 @@ export default {
         console.log('当前是午餐时段')
         return 'lt'
       } else if (nowCount > dt1 && nowCount < dt2) {
-        console.log('当前是晚餐时段')
-        return 'lt'
+        console.log('当前是晚餐时段', dt1, dt2)
+        return 'dt'
       } else {
         console.log('当前不是用餐时段')
         this.$message.error('当前不是用餐时段')
@@ -370,22 +366,22 @@ export default {
           }
 
           console.log('午晚餐总价格:', ypriceSum)
-          var payPrice = parseFloat(ypriceSum) - this.freeDNPrice
+          var payPrice = parseFloat(ypriceSum) - parseFloat(this.freeDNPrice)
           console.log('扣费后价格：', payPrice)
           // 小于免费金额的化为免费，价格0
           if (payPrice < 0) { payPrice = 0 }
           // 总价减去免费金额10元
-          if (this.nowOrderManLeftMoney - payPrice >= 0) {
-            this.submitFun()
-          } else {
-            this.$message.error('抱歉~您的余额不足')
-          }
+
           // 价格加上牛奶价格
           if (this.isMilk) {
-            payPrice += this.milkPrice
+            payPrice += parseFloat(this.milkPrice)
+          }
+          // 判断扣费后是否足够钱
+          if (parseFloat(this.nowOrderManLeftMoney) - payPrice < 0) {
+            this.$message.error('抱歉~您的余额不足')
           }
 
-          this.allsum = payPrice
+          this.allsum = payPrice.toFixed(2)
 
           this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
             confirmButtonText: '确定',
@@ -394,7 +390,12 @@ export default {
           }).then(() => {
             // 确定
             console.log('确定')
+            this.submitFun()
             this.sendMenuMeg()
+            // 开启遮罩层
+            this.dialogVisible = true
+            this.nowOrderManName = ''
+            this.nowOrderManLeftMoney = parseFloat(0)
           }).catch(() => {
             // 取消
             console.log('取消')
@@ -438,6 +439,7 @@ export default {
       this.childWin.postMessage(fatherData)
     },
     enterOrder() {
+      this.isMilk = false
       this.fatherDataSend(true)
       // 请求是否在排餐时段
       var inOrderTimeBool = this.timeJudge()
@@ -460,7 +462,7 @@ export default {
           this.nowOrderManName = res.data.PcInfo.Name
           this.informationNum = res.data.PcInfo.InformationNum
           this.nowOrderManLeftMoney = res.data.PcInfo.Amount
-          this.isFirstTime = res.data.IsFristOrderMeal
+          this.isFirstTime = true// res.data.IsFristOrderMeal
           this.isFirstMilk = res.data.isFirstMilk
         })
         this.dialogVisible = false
@@ -517,18 +519,18 @@ export default {
     getFoodsIds() {
       var allIds = ''
       this.movieselected.forEach(element => {
-        allIds += element.Id + ','
+        allIds += element.foodId + ','
       })
       return allIds.substring(0, allIds.length - 1)
     },
     submitFun() {
       axios.get('/Interface/Synchronize/BuffetSynchronize.ashx', {
         params: {
-          informationNum: '66666666666', // this.informationNum,
+          informationNum: this.informationNum, // this.informationNum,
           cookbookSetInDateId: this.getMeadlId,
           cookbookIds: this.getFoodsIds(),
-          isMilk: 'false',
-          createDate: '2020-06-27'
+          isMilk: this.isMilk,
+          createDate: this.getTodayDate()
         }
       }).then(res => {
         console.log('clickfun:', res)
@@ -538,9 +540,9 @@ export default {
     clickFun() {
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
-          CafeteriaId: '16',
-          CookbookEnum: 'Lunch',
-          Datetime: '2020-06-4'
+          CafeteriaId: this.configDataLocal.CafeteriaId,
+          CookbookEnum: this.timeBoolChange(this.nowTimeMealBool),
+          Datetime: this.getTodayDate()
         }
       }).then(res => {
         this.movie = res.data.cookbooks
@@ -550,6 +552,22 @@ export default {
           this.switchValue.push(true)
         })
       })
+    },
+    // 获取当天年月日
+    getTodayDate() {
+      var date = new Date()
+      var seperator1 = '-'
+      var year = date.getFullYear()
+      var month = date.getMonth() + 1
+      var strDate = date.getDate()
+      if (month >= 1 && month <= 9) {
+        month = '0' + month
+      }
+      if (strDate >= 0 && strDate <= 9) {
+        strDate = '0' + strDate
+      }
+      var currentdate = year + seperator1 + month + seperator1 + strDate
+      return currentdate
     }
   }
 }
@@ -558,7 +576,7 @@ export default {
 <style>
 .buttonclass {
     font: Jwhite;
-    width: 140px;
+    width: 180px;
 }
 </style>
 
@@ -585,7 +603,7 @@ export default {
     color: #333;
     text-align: center;
     line-height: 160px;
-    height: 600px;
+    height: 900px;
 }
 
 body > .el-container {
