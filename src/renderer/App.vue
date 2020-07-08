@@ -12,9 +12,6 @@
 import firstPage from '@/components/firstPage'
 import one from '@/components/one'
 import cookerPage from '@/components/cookerPage'
-import configData from '@/config.json'
-
-window.configData = configData
 
 export default {
   name: 'wafer-project',

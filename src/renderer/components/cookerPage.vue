@@ -88,6 +88,7 @@
 </template>
 <script>
 import axios from 'axios'
+import fs from 'fs'
 // import { ipcRenderer } from 'electron'
 
 export default {
@@ -100,11 +101,24 @@ export default {
       foodSelected1: [],
       foodSelected2: [],
       isMilk1: false,
-      isMilk2: false
+      isMilk2: false,
+      CafeteriaId: '',
+      nowTimeMealBool: '',
+      axiosUrl: ''
     }
   },
   mounted: function () {
-    this.getFun()
+    const afterUrl = (window.location.hash).toString().split('?')[1]
+    const params = (afterUrl).split('&')
+
+    this.CafeteriaId = params[0].split('=')[1]
+    this.nowTimeMealBool = params[1].split('=')[1]
+    var axiosUrlstr1 = params[2].split('=')[1]
+    var axiosUrlstr2 = params[3].split('=')[1]
+    this.axiosUrl = axiosUrlstr1 + ':' + axiosUrlstr2
+    alert(this.axiosUrl)
+    axios.defaults.baseURL =
+      this.getFun()
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data.enter) {
@@ -134,6 +148,18 @@ export default {
   },
 
   methods: {
+    readConfig() {
+      // eslint-disable-next-line no-unused-vars
+      var aaa = null
+      fs.readFile('d:/config.json', 'utf-8', (err, data) => {
+        if (err) {
+          console.log('文件读取失败', err)
+        } else {
+          aaa = JSON.parse(data)
+          this.axiosUrl = aaa.baseUrl // 关键代码
+        }
+      })
+    },
     changeSwitchValue() {
       var cookSendData = {
         switchValue: this.switchvalue
@@ -144,14 +170,32 @@ export default {
     changeFun() {
       console.log('按开关啦！')
     },
+    getTodayDate() {
+      var date = new Date()
+      var seperator1 = '-'
+      var year = date.getFullYear()
+      var month = date.getMonth() + 1
+      var strDate = date.getDate()
+      if (month >= 1 && month <= 9) {
+        month = '0' + month
+      }
+      if (strDate >= 0 && strDate <= 9) {
+        strDate = '0' + strDate
+      }
+      var currentdate = year + seperator1 + month + seperator1 + strDate
+      return currentdate
+    },
     getFun() {
+      alert('id+bool' + this.CafeteriaId + 'bool' + this.nowTimeMealBool)
+      alert('axios.defaults.baseURL', axios.defaults.baseURL)
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
-          CafeteriaId: '16',
-          CookbookEnum: 'Lunch',
-          Datetime: '2020-06-4'
+          CafeteriaId: this.CafeteriaId,
+          CookbookEnum: this.nowTimeMealBool,
+          Datetime: this.getTodayDate()
         }
       }).then(res => {
+        console.log('rrrrrrrr' + res.data.Msg)
         this.cookBook = res.data.cookbooks
         this.switchvalue = []
         console.log(res.data)

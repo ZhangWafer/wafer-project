@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-container v-loading="load">
+    <el-container v-loading="mainLoading">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
         <el-col :span="3">
           <el-tag type="success"
@@ -132,9 +132,11 @@
       :visible.sync="settingPageBool"
       width="30%"
       :show-close="false"
-      center>
+      center
+      :close-on-click-modal='false'
+      :close-on-press-escape='false'>
       <el-row style="text-align:center;font-size:18px;"
-        v-for="(item,index) in configDataLocal"
+        v-for="(item,index) in configData"
         :key="'config'+index">
         <el-col :span="12"
           style="margin-left:-20px">
@@ -142,7 +144,7 @@
         </el-col>
         <el-col :span="12">
           <el-input :value="item"
-            v-model="configDataLocal[index]"></el-input>
+            v-model="configData[index]"></el-input>
         </el-col>
       </el-row>
       <span slot="footer"
@@ -151,7 +153,7 @@
           <el-col :span="24">
             <el-button type="primary"
               style="width:80%  "
-              @click="saveSetting()">
+              @click="saveSetting">
               保存设置
             </el-button>
           </el-col>
@@ -165,9 +167,8 @@
 import axios from 'axios'
 import Vue from 'vue'
 import fs from 'fs'
-const localConfig = require('d:/config.json')
-
-axios.defaults.baseURL = localConfig.baseUrl // 关键代码
+import localConfig from 'd:/config.json'
+// var localConfig = require('D:/config.json')
 
 Vue.prototype.$ajax = axios
 
@@ -178,7 +179,7 @@ export default {
       dialogVisible: true,
       movieselected: [],
       show2: true,
-      load: false,
+      mainLoading: false,
       allsum: parseFloat(0),
       movie: [],
       nowTimeMealBool: '',
@@ -202,12 +203,18 @@ export default {
       configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url']
     }
   },
-  mounted: function () {
+  created: function () {
+    // 读取配置文件
+    this.readConfig()
     this.getMilkPrice()
     // eslint-disable-next-line no-unused-vars
     // window.sonWindow = window.open('/#/cook')
-    console.log('当前主页位置：', window.location.href)
-    this.childWin = window.open(window.location.href + 'cook')
+    console.log('当前主页位置：', window.location.host)
+    this.nowTimeMealBool = this.timeJudge()
+    var urlstr = axios.defaults.baseURL.split('http://')[1]
+    urlstr = urlstr.split(':')
+    // + '&url=' + window.location.origin
+    this.childWin = window.open(window.location.href + 'cook?CafeteriaId=' + this.configDataLocal.CafeteriaId + '&timeBool=' + this.timeBoolChange(this.nowTimeMealBool) + '&axiosUrl=' + urlstr[0] + '&axiosPort=' + urlstr[1])
 
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
@@ -215,8 +222,6 @@ export default {
         this.switchValue = msg.data.switchValue
       }
     })
-    // 读取配置文件
-    this.readConfig()
   },
   watch: {
     allsum() {
@@ -233,8 +238,8 @@ export default {
   },
 
   methods: {
+
     test2() {
-      console.log(this.configDataLocal)
     },
     getMilkPrice() {
       axios.get('Interface/Common/GetMilkPrice.ashx').then(res => {
@@ -247,9 +252,16 @@ export default {
         if (err) {
           console.log('文件读取失败', err)
         } else {
-          console.log(Object.assign({}, JSON.parse(data)))
-          aaa = Object.assign({}, JSON.parse(data))
+          aaa = JSON.parse(data)
+          console.log(aaa)
+          this.configData.bt = aaa.bt
+          this.configData.lt = aaa.lt
+          this.configData.dt = aaa.dt
+          this.configData.snNumber = aaa.snNumber
+          this.configData.CafeteriaId = aaa.CafeteriaId
+          this.configData.baseUrl = aaa.baseUrl
           // var loadConfig = JSON.parse(data)
+          axios.defaults.baseURL = this.configData.baseUrl // 关键代码
         }
       })
 
@@ -257,13 +269,16 @@ export default {
     },
     saveSetting() {
       console.log(this.configDataLocal)
-      fs.writeFile('d:/config.json', JSON.stringify(this.configDataLocal), err => {
+      fs.writeFile('D:/config.json', JSON.stringify(this.configDataLocal), err => {
         if (err) {
+          alert(err)
           console.log('write file error!')
         } else {
           console.log('add note successfully!')
+          this.$message.success('保存设置成功')
         }
       })
+      this.settingPageBool = false
       // console.log('this.settingPageBool', this.settingPageBool)
     },
     priceCalculate(arrItem) {
@@ -390,8 +405,10 @@ export default {
           }).then(() => {
             // 确定
             console.log('确定')
+            this.mainLoading = true
             this.submitFun()
             this.sendMenuMeg()
+            this.mainLoading = false
             // 开启遮罩层
             this.dialogVisible = true
             this.nowOrderManName = ''
@@ -439,6 +456,7 @@ export default {
       this.childWin.postMessage(fatherData)
     },
     enterOrder() {
+      this.mainLoading = true
       this.isMilk = false
       this.fatherDataSend(true)
       // 请求是否在排餐时段
@@ -465,6 +483,7 @@ export default {
           this.isFirstTime = true// res.data.IsFristOrderMeal
           this.isFirstMilk = res.data.isFirstMilk
         })
+        this.mainLoading = false
         this.dialogVisible = false
       }
     },
