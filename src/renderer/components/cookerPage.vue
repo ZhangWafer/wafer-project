@@ -108,6 +108,7 @@ export default {
     }
   },
   mounted: function () {
+    console.log('mounted')
     const afterUrl = (window.location.hash).toString().split('?')[1]
     const params = (afterUrl).split('&')
 
@@ -116,9 +117,10 @@ export default {
     var axiosUrlstr1 = params[2].split('=')[1]
     var axiosUrlstr2 = params[3].split('=')[1]
     this.axiosUrl = axiosUrlstr1 + ':' + axiosUrlstr2
-    alert(this.axiosUrl)
-    axios.defaults.baseURL =
-      this.getFun()
+    console.log('读完配置', afterUrl)
+    axios.defaults.baseURL = 'http://' + this.axiosUrl
+    this.getFun()
+
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data.enter) {
@@ -185,9 +187,9 @@ export default {
       var currentdate = year + seperator1 + month + seperator1 + strDate
       return currentdate
     },
-    getFun() {
-      alert('id+bool' + this.CafeteriaId + 'bool' + this.nowTimeMealBool)
-      alert('axios.defaults.baseURL', axios.defaults.baseURL)
+    async getFun() {
+      // alert('id+bool' + this.CafeteriaId + 'bool' + this.nowTimeMealBool)
+      // alert('axios.defaults.baseURL', axios.defaults.baseURL)
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
           CafeteriaId: this.CafeteriaId,

@@ -119,7 +119,7 @@
           <el-col :span="24">
             <el-button type="primary"
               style="width:80%  "
-              @click="enterOrder">
+              @click="enterOrder()">
               进入
             </el-button>
           </el-col>
@@ -136,7 +136,7 @@
       :close-on-click-modal='false'
       :close-on-press-escape='false'>
       <el-row style="text-align:center;font-size:18px;"
-        v-for="(item,index) in configData"
+        v-for="(item,index) in configDataLocal"
         :key="'config'+index">
         <el-col :span="12"
           style="margin-left:-20px">
@@ -144,7 +144,7 @@
         </el-col>
         <el-col :span="12">
           <el-input :value="item"
-            v-model="configData[index]"></el-input>
+            v-model="configDataLocal[index]"></el-input>
         </el-col>
       </el-row>
       <span slot="footer"
@@ -167,9 +167,6 @@
 import axios from 'axios'
 import Vue from 'vue'
 import fs from 'fs'
-import localConfig from 'd:/config.json'
-// var localConfig = require('D:/config.json')
-
 Vue.prototype.$ajax = axios
 
 export default {
@@ -188,8 +185,6 @@ export default {
       maxBFPrice: 12, // 早餐优惠金额
       freeDNPrice: 0, // 午晚餐优惠金额
       freeFoodNum: 4, // 中晚餐优惠价菜品数量
-      SNid: localConfig.snNumber,
-      configData: localConfig, // 设备号
       nowOrderManName: '',
       nowOrderManLeftMoney: 0,
       informationNum: '',
@@ -199,29 +194,42 @@ export default {
       isMilk: false, // isMilk确认是否点牛奶，isFirstMilk确认这个人之前是否点过牛奶
       isFirstMilk: false,
       milkPrice: 5,
-      configDataLocal: localConfig,
-      configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url']
+      configDataLocal: {
+        bt: '',
+        lt: '',
+        dt: '',
+        snNumber: '',
+        CafeteriaId: '',
+        baseUrl: ''
+      },
+      configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url'],
+      urlStr: []
     }
   },
   created: function () {
-    // 读取配置文件
-    this.readConfig()
-    this.getMilkPrice()
-    // eslint-disable-next-line no-unused-vars
-    // window.sonWindow = window.open('/#/cook')
-    console.log('当前主页位置：', window.location.host)
-    this.nowTimeMealBool = this.timeJudge()
-    var urlstr = axios.defaults.baseURL.split('http://')[1]
-    urlstr = urlstr.split(':')
-    // + '&url=' + window.location.origin
-    this.childWin = window.open(window.location.href + 'cook?CafeteriaId=' + this.configDataLocal.CafeteriaId + '&timeBool=' + this.timeBoolChange(this.nowTimeMealBool) + '&axiosUrl=' + urlstr[0] + '&axiosPort=' + urlstr[1])
-
+    console.log('created')
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data != undefined) {
         this.switchValue = msg.data.switchValue
       }
     })
+  },
+  async  mounted() {
+    console.log('mounted')
+
+    // eslint-disable-next-line no-unused-vars
+    // window.sonWindow = window.open('/#/cook')
+
+    // 读取配置文件
+    this.readConfig()
+
+    // this.childWin = window.open('/#/cook')
+    // // 取牛奶价格
+    this.getMilkPrice()
+  },
+  updated() {
+    console.log('updated')
   },
   watch: {
     allsum() {
@@ -246,26 +254,32 @@ export default {
         console.log(res)
       })
     },
-    readConfig() {
+    async readConfig() {
+      console.log('开始读config')
       var aaa = null
       fs.readFile('d:/config.json', 'utf-8', (err, data) => {
         if (err) {
           console.log('文件读取失败', err)
         } else {
           aaa = JSON.parse(data)
-          console.log(aaa)
-          this.configData.bt = aaa.bt
-          this.configData.lt = aaa.lt
-          this.configData.dt = aaa.dt
-          this.configData.snNumber = aaa.snNumber
-          this.configData.CafeteriaId = aaa.CafeteriaId
-          this.configData.baseUrl = aaa.baseUrl
-          // var loadConfig = JSON.parse(data)
-          axios.defaults.baseURL = this.configData.baseUrl // 关键代码
+          console.log('本地配置：', aaa)
+          this.configDataLocal.bt = aaa.bt
+          this.configDataLocal.lt = aaa.lt
+          this.configDataLocal.dt = aaa.dt
+          this.configDataLocal.snNumber = aaa.snNumber
+          this.configDataLocal.CafeteriaId = aaa.CafeteriaId
+          this.configDataLocal.baseUrl = aaa.baseUrl
+          // 拆分当前url
+          console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
+          console.log('读完config')
+          // 设置axios-url
+          axios.defaults.baseURL = this.configDataLocal.baseUrl
+          this.nowTimeMealBool = this.timeJudge()
+          this.urlStr[0] = this.configDataLocal.baseUrl.split('http://')[1].split(':')[0]
+          this.urlStr[1] = this.configDataLocal.baseUrl.split('http://')[1].split(':')[1]
+          this.childWin = window.open(window.location.href + 'cook?CafeteriaId=' + this.configDataLocal.CafeteriaId + '&timeBool=' + this.timeBoolChange(this.nowTimeMealBool) + '&axiosUrl=' + this.urlStr[0] + '&axiosPort=' + this.urlStr[1])
         }
       })
-
-      console.log('本地配置：', aaa)
     },
     saveSetting() {
       console.log(this.configDataLocal)
@@ -279,7 +293,6 @@ export default {
         }
       })
       this.settingPageBool = false
-      // console.log('this.settingPageBool', this.settingPageBool)
     },
     priceCalculate(arrItem) {
       // eslint-disable-next-line no-unused-vars
@@ -295,23 +308,22 @@ export default {
       var nowCount =
         dateNow.getHours(dateNow) * 60 + dateNow.getMinutes(dateNow)
       // /////////////////1/
-      var bt = this.configData.bt.split('-')
+      var bt = this.configDataLocal.bt.split('-')
       var bt1 =
         parseInt(bt[0].split(':')[0]) * 60 + parseInt(bt[0].split(':')[1])
       var bt2 =
         parseInt(bt[1].split(':')[0]) * 60 + parseInt(bt[1].split(':')[1])
-      var lt = this.configData.lt.split('-')
+      var lt = this.configDataLocal.lt.split('-')
       var lt1 =
         parseInt(lt[0].split(':')[0]) * 60 + parseInt(lt[0].split(':')[1])
       var lt2 =
         parseInt(lt[1].split(':')[0]) * 60 + parseInt(lt[1].split(':')[1])
-      var dt = this.configData.dt.split('-')
+      var dt = this.configDataLocal.dt.split('-')
       var dt1 =
         parseInt(dt[0].split(':')[0]) * 60 + parseInt(dt[0].split(':')[1])
       var dt2 =
         parseInt(dt[1].split(':')[0]) * 60 + parseInt(dt[1].split(':')[1])
-      // var lt = this.configData.1t.split("-");
-      // var dt = this.configData.dt.split("-");
+
       console.log('nowCount', nowCount)
       if (nowCount > bt1 && nowCount < bt2) {
         console.log('当前是早餐时段')
@@ -455,37 +467,42 @@ export default {
       }
       this.childWin.postMessage(fatherData)
     },
-    enterOrder() {
+    async enterOrder() {
+      console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
       this.mainLoading = true
       this.isMilk = false
       this.fatherDataSend(true)
+      // 请求对应排餐和排餐id
+      this.clickFun()
       // 请求是否在排餐时段
       var inOrderTimeBool = this.timeJudge()
       if (inOrderTimeBool != 'None') {
         this.nowTimeMealBool = inOrderTimeBool
-        // 请求对应排餐和排餐id
-        this.clickFun()
-        // 获取当前人员人脸信息
-        axios.get('/Interface/Common/GetUserData.ashx', {
-          params: {
-            sn: 'C01', // this.SNid,
-            cookbookSetInDateId: '5'// this.getMeadlId
-          }
-        }).then(res => {
-          console.log(res.data)
-          this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
-          this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
-          this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
-          this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
-          this.nowOrderManName = res.data.PcInfo.Name
-          this.informationNum = res.data.PcInfo.InformationNum
-          this.nowOrderManLeftMoney = res.data.PcInfo.Amount
-          this.isFirstTime = true// res.data.IsFristOrderMeal
-          this.isFirstMilk = res.data.isFirstMilk
-        })
+
+        console.log('mealIIIID', this.getMeadlId)
         this.mainLoading = false
         this.dialogVisible = false
       }
+    },
+    async getUserData() {
+      // 获取当前人员人脸信息
+      axios.get('/Interface/Common/GetUserData.ashx', {
+        params: {
+          sn: this.configDataLocal.snNumber, // this.SNid,
+          cookbookSetInDateId: this.getMeadlId// this.getMeadlId
+        }
+      }).then(res => {
+        console.log(res.data)
+        this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
+        this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
+        this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
+        this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+        this.nowOrderManName = res.data.PcInfo.Name
+        this.informationNum = res.data.PcInfo.InformationNum
+        this.nowOrderManLeftMoney = res.data.PcInfo.Amount
+        this.isFirstTime = true// res.data.IsFristOrderMeal
+        this.isFirstMilk = res.data.isFirstMilk
+      })
     },
     // 处理点菜品取消×函数
     handleClose(foodName) {
@@ -542,7 +559,7 @@ export default {
       })
       return allIds.substring(0, allIds.length - 1)
     },
-    submitFun() {
+    async submitFun() {
       axios.get('/Interface/Synchronize/BuffetSynchronize.ashx', {
         params: {
           informationNum: this.informationNum, // this.informationNum,
@@ -556,7 +573,7 @@ export default {
       })
     },
     // 获取菜单
-    clickFun() {
+    async clickFun() {
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
           CafeteriaId: this.configDataLocal.CafeteriaId,
@@ -565,11 +582,13 @@ export default {
         }
       }).then(res => {
         this.movie = res.data.cookbooks
-        this.getMeadlId = res.data.cookbookSetInDate.Id
+        this.getMeadlId = res.data.cookbookSetInDate.Id.toString()
         this.switchValue = []
+        console.log('this.getMeadlId ', this.getMeadlId)
         this.movie.forEach(element => {
           this.switchValue.push(true)
         })
+        this.getUserData()
       })
     },
     // 获取当天年月日
