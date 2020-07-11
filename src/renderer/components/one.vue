@@ -4,7 +4,7 @@
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
         <el-col :span="3">
           <el-tag type="success"
-            style="width:80%;font-size:16px">
+            style="width:80%;font-size:22px">
             牛奶
             <el-switch v-model="isMilk"
               active-color="#13ce66"
@@ -13,7 +13,7 @@
           </el-tag>
         </el-col>
         <el-col :span="17">
-          <el-tag style="font-size:18px">自助点餐系统
+          <el-tag style="font-size:22px;width:200px">自助点餐系统
           </el-tag>
         </el-col>
 
@@ -24,19 +24,19 @@
       <el-container>
         <!-- 侧界面 -->
         <el-aside style="1ine-height:30px;background:rgb(251,251,251);position:relative;"
-          width="200px">
+          width="280px">
           <el-row>
-            <el-tag style="margin-top:10px;font-size:16px;width:160px;"
+            <el-tag style="margin-top:10px;font-size:22px;width:200px;"
               type="success">已点菜单</el-tag>
           </el-row>
           <el-row style="margin-top:10px">
             <el-col :span="24"
               v-for="(item,index) in movieselected"
               :key="'orderdFood'+index"
-              style="height:30px;margin-bottom:10px;">
+              style="height:30px;margin-bottom:18px;">
               <el-tag :key="item.foodName"
                 @close="handleClose(item.foodName)"
-                style="font-size:16px;width:160px;"
+                style="font-size:22px;width:220px;font-weight:bold"
                 closable
                 :disable-transitions="false">
                 {{item.foodName}}
@@ -46,7 +46,7 @@
 
           <el-row style="position:absolute;bottom:0px;width:100%;">
             <el-button type="danger"
-              style="width:100%;height:60px;font-size:18px"
+              style="width:100%;height:100px;font-size:24px"
               @click="endOrder">
               结算
             </el-button>
@@ -68,28 +68,35 @@
                   :disabled="!switchValue[index]"
                   @click="addFun(item.Name,item.Price,item.PcPrice,item.Id)">
                   <el-row>
-                    <el-col :span="24"
-                      style="font-size:16px;font-weight:bold">
-                      {{item.Name}}
+                    <el-image style="width: 140px; height: 100px"
+                      :src="item.Icon"></el-image>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="24">
+                      <el-tag style="font-size:24px;font-weight:bold"> {{item.Name}}</el-tag>
                     </el-col>
                   </el-row>
                   <el-row style="margin-top:6px">
-                    <el-tag type="success"> 价格：{{item.Price}}</el-tag>
-                  </el-row>
-                  <el-row style="margin-top:10px">
-                    <el-tag type="warning"> 价格：{{item.PcPrice}}</el-tag>
+                    <el-col :span="12">
+                      <el-tag type="success"> 价格：{{item.Price}}</el-tag>
+                    </el-col>
+
+                    <el-col :span="12">
+                      <el-tag type="warning"> 优惠价格：{{item.PcPrice}}</el-tag>
+                    </el-col>
+
                   </el-row>
                 </el-button>
               </el-col>
             </el-row>
           </el-main>
-          <el-footer style="background-color:#ECF5FF;">
-            <el-row>
+          <el-footer style="background-color:#ECF5FF;height:100px">
+            <el-row style="margin-top:30px">
               <el-col :span="12">
-                <el-tag style="font-size:18px">当前点餐人：{{nowOrderManName}}</el-tag>
+                <el-tag style="font-size:22px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
               <el-col :span="10">
-                <el-tag style="font-size:18px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+                <el-tag style="font-size:22px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
               </el-col>
               <el-col :span="1">
                 <el-button @click="settingPageBool=true"
@@ -208,12 +215,6 @@ export default {
   },
   created: function () {
     console.log('created')
-    window.addEventListener('message', (msg) => {
-      console.log('接收到的消息,', msg.data)
-      if (msg.data != undefined) {
-        this.switchValue = msg.data.switchValue
-      }
-    })
   },
   async  mounted() {
     console.log('mounted')
@@ -227,6 +228,12 @@ export default {
     // this.childWin = window.open('/#/cook')
     // // 取牛奶价格
     this.getMilkPrice()
+    window.addEventListener('message', (msg) => {
+      console.log('接收到的消息,', msg.data)
+      if (msg.data != undefined) {
+        this.switchValue = msg.data.switchValue
+      }
+    })
   },
   updated() {
     console.log('updated')
@@ -581,6 +588,7 @@ export default {
           Datetime: this.getTodayDate()
         }
       }).then(res => {
+        console.log('返回菜品', res.data)
         this.movie = res.data.cookbooks
         this.getMeadlId = res.data.cookbookSetInDate.Id.toString()
         this.switchValue = []
@@ -614,7 +622,7 @@ export default {
 <style>
 .buttonclass {
     font: Jwhite;
-    width: 180px;
+    width: 240px;
 }
 </style>
 
@@ -641,7 +649,7 @@ export default {
     color: #333;
     text-align: center;
     line-height: 160px;
-    height: 900px;
+    height: 780px;
 }
 
 body > .el-container {

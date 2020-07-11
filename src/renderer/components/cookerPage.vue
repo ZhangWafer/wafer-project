@@ -6,7 +6,7 @@
           style="background:#FBFBFB;position:relative">
           <el-row style="margin-top:10px">
             <el-tag type="success"
-              style="width:200px">
+              style="width:200px;font-size:22px">
               本次菜品
             </el-tag>
           </el-row>
@@ -23,7 +23,7 @@
             </el-col>
           </el-row>
           <el-row style="position:absolute;bottom:0;">
-            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:18px">
+            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:22px">
               {{isMilk1?'有牛奶':'无牛奶'}}
             </el-tag>
           </el-row>
@@ -32,7 +32,7 @@
           style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative">
           <el-row style="margin-top:10px">
             <el-tag type="warning"
-              style="width:200px">
+              style="width:200px;font-size:22px;">
               上次菜品
             </el-tag>
           </el-row>
@@ -49,7 +49,7 @@
             </el-col>
           </el-row>
           <el-row style="position:absolute;bottom:0;">
-            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:18px">
+            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:22px">
               {{isMilk2?'有牛奶':'无牛奶'}}
             </el-tag>
           </el-row>
@@ -66,7 +66,11 @@
               <el-col v-for="(item,index) in cookBook"
                 :key="item.index"
                 :span="6">
-                <el-tag style="font-size:16px;height:64px;width:140px">
+                <el-tag style="font-size:22px;height:190px;width:200px">
+                  <el-row style="margin-top:14px">
+                    <el-image style="width: 140px; height: 100px"
+                      :src="item.Icon"></el-image>
+                  </el-row>
                   <el-row>{{item.Name}}</el-row>
                   <el-row>
                     售馨
@@ -79,6 +83,9 @@
                   </el-row>
                 </el-tag>
               </el-col>
+            </el-row>
+            <el-row>
+
             </el-row>
           </el-main>
         </el-container>
