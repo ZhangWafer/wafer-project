@@ -499,11 +499,21 @@ export default {
           cookbookSetInDateId: this.getMeadlId// this.getMeadlId
         }
       }).then(res => {
+        if (res.data.HolidaysPreferential.length == 0) {
+          console.log(res.data.HolidaysPreferential.length, '我不是节日')
+          this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
+          this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
+          this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
+          this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+        } else {
+          console.log(res.data.HolidaysPreferential.length, '我是节日')
+          this.freeBFPrice = res.data.HolidaysPreferential[0].BreakfastFree// 早餐全免金额
+          this.maxBFPrice = res.data.HolidaysPreferential[0].BreakfastPreferential // 早餐优惠金额
+          this.freeDNPrice = res.data.HolidaysPreferential[0].LunchSupperPreferential// 午晚餐优惠金额
+          this.freeFoodNum = res.data.HolidaysPreferential[0].LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+        }
         console.log(res.data)
-        this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
-        this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
-        this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
-        this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+
         this.nowOrderManName = res.data.PcInfo.Name
         this.informationNum = res.data.PcInfo.InformationNum
         this.nowOrderManLeftMoney = res.data.PcInfo.Amount

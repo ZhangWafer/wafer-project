@@ -132,11 +132,12 @@ export default {
       console.log('接收到的消息,', msg.data)
       if (msg.data.enter) {
         this.enableSwitch = msg.data.enter
+      } else {
+        this.foodSelected2 = this.foodSelected1
+        this.foodSelected1 = msg.data.foodSelected
+        this.isMilk2 = this.isMilk1
+        this.isMilk1 = msg.data.isMilk
       }
-      this.foodSelected2 = this.foodSelected1
-      this.foodSelected1 = msg.data.foodSelected
-      this.isMilk2 = this.isMilk1
-      this.isMilk1 = msg.data.isMilk
       // if (msg.data != undefined) {
       //   this.switchValue = msg.data.switchValue
       // }
