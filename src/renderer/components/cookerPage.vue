@@ -3,7 +3,7 @@
     <el-container>
       <el-container>
         <el-aside width="200px"
-          style="background:#FBFBFB;position:relative">
+          style="background:#FBFBFB;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="success"
               style="width:200px;font-size:22px">
@@ -23,13 +23,14 @@
             </el-col>
           </el-row>
           <el-row style="position:absolute;bottom:0;">
-            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:22px">
+            <el-tag style="margin-left:48px;margin-bottom:10px;width:100px;font-size:22px">
               {{isMilk1?'有牛奶':'无牛奶'}}
             </el-tag>
           </el-row>
+
         </el-aside>
         <el-aside width="200px"
-          style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative">
+          style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="warning"
               style="width:200px;font-size:22px;">
@@ -48,10 +49,18 @@
               </el-tag>
             </el-col>
           </el-row>
+
           <el-row style="position:absolute;bottom:0;">
-            <el-tag style="margin-left:42px;margin-bottom:10px;width:100px;font-size:22px">
+            <el-tag style="margin-left:48px;margin-bottom:100px;width:100px;font-size:22px">
               {{isMilk2?'有牛奶':'无牛奶'}}
             </el-tag>
+          </el-row>
+          <el-row style="position:absolute;bottom:0;">
+            <el-button @click="popFoodSelected"
+              type="success"
+              style="margin-left:22px;margin-bottom:10px;width:160px;font-size:22px;height:80px">
+              已打菜
+            </el-button>
           </el-row>
         </el-aside>
         <el-container>
@@ -64,14 +73,15 @@
           <el-main>
             <el-row>
               <el-col v-for="(item,index) in cookBook"
+                style="margin-left:13px"
                 :key="item.index"
-                :span="6">
-                <el-tag style="font-size:22px;height:190px;width:200px">
+                :span="4.8">
+                <el-tag style="font-size:22px;height:190px;width:158px">
                   <el-row style="margin-top:14px">
                     <el-image style="width: 140px; height: 100px"
                       :src="item.Icon"></el-image>
                   </el-row>
-                  <el-row>{{item.Name}}</el-row>
+                  <el-row :style="item.Name.length>6?'font-size:18px;font-weight:bold':'font-size:22px;font-weight:bold'">{{item.Name}}</el-row>
                   <el-row>
                     售馨
 
@@ -105,6 +115,7 @@ export default {
       cookBook: [],
       dialogVisible: true,
       enableSwitch: false,
+      bigFoodSelected: [],
       foodSelected1: [],
       foodSelected2: [],
       isMilk1: false,
@@ -130,11 +141,27 @@ export default {
 
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
+      if (msg.data === undefined) {
+        return
+      }
       if (msg.data.enter) {
         this.enableSwitch = msg.data.enter
+        this.changeSwitchValue()
       } else {
-        this.foodSelected2 = this.foodSelected1
-        this.foodSelected1 = msg.data.foodSelected
+        this.bigFoodSelected.push(msg.data.foodSelected)
+
+        if (this.bigFoodSelected[0] === undefined) {
+          console.log('undefinde')
+          this.bigFoodSelected.pop(undefined)
+        }
+
+        console.log('this.bigFoodSelected', this.bigFoodSelected)
+        // 菜品队列小于两个往右挪
+        if (this.bigFoodSelected.length <= 2) {
+          this.foodSelected2 = this.foodSelected1
+          this.foodSelected1 = this.bigFoodSelected[this.bigFoodSelected.length - 1]
+        }
+
         this.isMilk2 = this.isMilk1
         this.isMilk1 = msg.data.isMilk
       }
@@ -158,6 +185,13 @@ export default {
   },
 
   methods: {
+    popFoodSelected() {
+      this.bigFoodSelected.shift()
+      this.foodSelected2 = this.foodSelected1
+      this.foodSelected1 = this.bigFoodSelected[1]
+
+      console.log('this.bigFoodSelected', this.bigFoodSelected)
+    },
     readConfig() {
       // eslint-disable-next-line no-unused-vars
       var aaa = null
@@ -241,6 +275,7 @@ export default {
     color: #333;
     text-align: center;
     line-height: 160px;
+    height: 520px;
 }
 
 body > .el-container {

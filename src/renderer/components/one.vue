@@ -56,36 +56,41 @@
         <el-container>
           <!-- <el-header>Header</el-header> -->
           <!-- 主界面 -->
-          <el-main style="line-height:50px;background:white;">
+          <el-main style="line-height:36px;background:white;">
             <el-row>
               <el-col v-for="(item,index) in movie"
                 :key="'noorderdFood'+index"
-                :span="6">
+                :span="4.8"
+                style="margin-left:8px">
                 <el-button type="primary"
                   round
                   plain
                   class="buttonclass"
                   :disabled="!switchValue[index]"
                   @click="addFun(item.Name,item.Price,item.PcPrice,item.Id)">
-                  <el-row>
-                    <el-image style="width: 140px; height: 100px"
-                      :src="item.Icon"></el-image>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="24">
-                      <el-tag style="font-size:24px;font-weight:bold"> {{item.Name}}</el-tag>
-                    </el-col>
-                  </el-row>
-                  <el-row style="margin-top:6px">
-                    <el-col :span="12">
-                      <el-tag type="success"> 价格：{{item.Price}}</el-tag>
-                    </el-col>
+                  <div style="">
+                    <el-row>
+                      <el-image style="width: 120px; height: 60px"
+                        :src="item.Icon"></el-image>
+                    </el-row>
+                    <el-row>
+                      <el-col :span="24">
+                        <el-tag :style="item.Name.length>6?'font-size:18px;font-weight:bold':'font-size:22px;font-weight:bold'"> {{item.Name}}</el-tag>
+                      </el-col>
+                    </el-row>
+                    <el-row :style="item.Price.length+item.PcPrice.length<4?'margin-top:6px;margin-left:-10px':'margin-top:6px;margin-left:-18px'">
+                      <el-col :span="12">
+                        <el-tag type="success"> 价格：{{item.Price}}</el-tag>
+                      </el-col>
 
-                    <el-col :span="12">
-                      <el-tag type="warning"> 优惠价格：{{item.PcPrice}}</el-tag>
-                    </el-col>
+                      <el-col :span="12">
+                        <el-tag type="warning"> 优惠价格：{{item.PcPrice}}</el-tag>
+                      </el-col>
 
-                  </el-row>
+                    </el-row>
+
+                  </div>
+
                 </el-button>
               </el-col>
             </el-row>
@@ -210,7 +215,8 @@ export default {
         baseUrl: ''
       },
       configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url'],
-      urlStr: []
+      urlStr: [],
+      noMoneyBool: false
     }
   },
   created: function () {
@@ -228,6 +234,7 @@ export default {
     // this.childWin = window.open('/#/cook')
     // // 取牛奶价格
     this.getMilkPrice()
+
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data != undefined) {
@@ -261,9 +268,9 @@ export default {
         console.log(res)
       })
     },
-    async readConfig() {
+    readConfig() {
       console.log('开始读config')
-      var aaa = null
+      let aaa = null
       fs.readFile('d:/config.json', 'utf-8', (err, data) => {
         if (err) {
           console.log('文件读取失败', err)
@@ -282,6 +289,7 @@ export default {
           // 设置axios-url
           axios.defaults.baseURL = this.configDataLocal.baseUrl
           this.nowTimeMealBool = this.timeJudge()
+
           this.urlStr[0] = this.configDataLocal.baseUrl.split('http://')[1].split(':')[0]
           this.urlStr[1] = this.configDataLocal.baseUrl.split('http://')[1].split(':')[1]
           this.childWin = window.open(window.location.href + 'cook?CafeteriaId=' + this.configDataLocal.CafeteriaId + '&timeBool=' + this.timeBoolChange(this.nowTimeMealBool) + '&axiosUrl=' + this.urlStr[0] + '&axiosPort=' + this.urlStr[1])
@@ -303,7 +311,7 @@ export default {
     },
     priceCalculate(arrItem) {
       // eslint-disable-next-line no-unused-vars
-      var sum = 0
+      let sum = 0
       arrItem.forEach(element => {
         sum += parseFloat(element.yprice)
       })
@@ -311,24 +319,24 @@ export default {
     },
     // 时间判断函数
     timeJudge() {
-      var dateNow = new Date()
-      var nowCount =
+      const dateNow = new Date()
+      const nowCount =
         dateNow.getHours(dateNow) * 60 + dateNow.getMinutes(dateNow)
       // /////////////////1/
-      var bt = this.configDataLocal.bt.split('-')
-      var bt1 =
+      const bt = this.configDataLocal.bt.split('-')
+      const bt1 =
         parseInt(bt[0].split(':')[0]) * 60 + parseInt(bt[0].split(':')[1])
-      var bt2 =
+      const bt2 =
         parseInt(bt[1].split(':')[0]) * 60 + parseInt(bt[1].split(':')[1])
-      var lt = this.configDataLocal.lt.split('-')
-      var lt1 =
+      const lt = this.configDataLocal.lt.split('-')
+      const lt1 =
         parseInt(lt[0].split(':')[0]) * 60 + parseInt(lt[0].split(':')[1])
-      var lt2 =
+      const lt2 =
         parseInt(lt[1].split(':')[0]) * 60 + parseInt(lt[1].split(':')[1])
-      var dt = this.configDataLocal.dt.split('-')
-      var dt1 =
+      const dt = this.configDataLocal.dt.split('-')
+      const dt1 =
         parseInt(dt[0].split(':')[0]) * 60 + parseInt(dt[0].split(':')[1])
-      var dt2 =
+      const dt2 =
         parseInt(dt[1].split(':')[0]) * 60 + parseInt(dt[1].split(':')[1])
 
       console.log('nowCount', nowCount)
@@ -347,10 +355,10 @@ export default {
         return 'None'
       }
     },
-    endOrder() {
+    async  endOrder() {
       // 优惠计算后价格
       // eslint-disable-next-line no-unused-vars
-      var ypriceSum = 0
+      let ypriceSum = 0
       console.log('nowBool:' + this.nowTimeMealBool)
       // 先判断是哪一餐
       switch (true) {
@@ -410,28 +418,42 @@ export default {
           if (this.isMilk) {
             payPrice += parseFloat(this.milkPrice)
           }
-          // 判断扣费后是否足够钱
-          if (parseFloat(this.nowOrderManLeftMoney) - payPrice < 0) {
-            this.$message.error('抱歉~您的余额不足')
-          }
 
           this.allsum = payPrice.toFixed(2)
 
           this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
-            type: 'warning'
+            type: 'warning',
+            confirmButtonClass: 'confirmButtonClass',
+            customMessgeBoxClass: 'customMessgeBoxClass',
+            cancelButtonClass: 'cancelButtonClass'
           }).then(() => {
-            // 确定
-            console.log('确定')
-            this.mainLoading = true
-            this.submitFun()
-            this.sendMenuMeg()
-            this.mainLoading = false
-            // 开启遮罩层
-            this.dialogVisible = true
-            this.nowOrderManName = ''
-            this.nowOrderManLeftMoney = parseFloat(0)
+            // 判断扣费后是否足够钱
+            if (parseFloat(this.nowOrderManLeftMoney) - payPrice < 0) {
+              // 开启遮罩层
+              this.$alert('抱歉！您的余额不足', '通知', {
+                confirmButtonText: '确定',
+                callback: action => {
+                  this.noMoneyBool = true
+                  this.dialogVisible = true
+                  this.nowOrderManName = ''
+                  this.nowOrderManLeftMoney = parseFloat(0)
+                  this.movieselected = []
+                }
+              })
+            } else {
+              // 确定
+              console.log('确定')
+              this.mainLoading = true
+              this.submitFun()
+              this.sendMenuMeg()
+              this.mainLoading = false
+              // 开启遮罩层
+              this.dialogVisible = true
+              this.nowOrderManName = ''
+              this.nowOrderManLeftMoney = parseFloat(0)
+            }
           }).catch(() => {
             // 取消
             console.log('取消')
@@ -570,7 +592,7 @@ export default {
       }
     },
     getFoodsIds() {
-      var allIds = ''
+      let allIds = ''
       this.movieselected.forEach(element => {
         allIds += element.foodId + ','
       })
@@ -590,7 +612,7 @@ export default {
       })
     },
     // 获取菜单
-    async clickFun() {
+    clickFun() {
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
           CafeteriaId: this.configDataLocal.CafeteriaId,
@@ -601,7 +623,6 @@ export default {
         console.log('返回菜品', res.data)
         this.movie = res.data.cookbooks
         this.getMeadlId = res.data.cookbookSetInDate.Id.toString()
-        this.switchValue = []
         console.log('this.getMeadlId ', this.getMeadlId)
         this.movie.forEach(element => {
           this.switchValue.push(true)
@@ -611,18 +632,18 @@ export default {
     },
     // 获取当天年月日
     getTodayDate() {
-      var date = new Date()
-      var seperator1 = '-'
-      var year = date.getFullYear()
-      var month = date.getMonth() + 1
-      var strDate = date.getDate()
+      const date = new Date()
+      const seperator1 = '-'
+      const year = date.getFullYear()
+      let month = date.getMonth() + 1
+      let strDate = date.getDate()
       if (month >= 1 && month <= 9) {
         month = '0' + month
       }
       if (strDate >= 0 && strDate <= 9) {
         strDate = '0' + strDate
       }
-      var currentdate = year + seperator1 + month + seperator1 + strDate
+      const currentdate = year + seperator1 + month + seperator1 + strDate
       return currentdate
     }
   }
@@ -632,7 +653,7 @@ export default {
 <style>
 .buttonclass {
     font: Jwhite;
-    width: 240px;
+    width: 190px;
 }
 </style>
 
@@ -652,6 +673,7 @@ export default {
     color: #333;
     text-align: center;
     line-height: 35px;
+    height: 660px;
 }
 
 .el-main {
@@ -659,7 +681,6 @@ export default {
     color: #333;
     text-align: center;
     line-height: 160px;
-    height: 780px;
 }
 
 body > .el-container {
@@ -674,5 +695,25 @@ body > .el-container {
 
 .el-container:nth-child(7) .el-aside {
     line-height: 320px;
+}
+
+.confirmButtonClass {
+    width: 214px;
+    height: 80px;
+    font-size: 20px;
+}
+.el-message-box {
+    width: 480px;
+    height: 200px;
+    text-align: center;
+}
+.cancelButtonClass {
+    width: 214px;
+    height: 80px;
+    font-size: 20px;
+}
+.el-message-box__message {
+    font-size: 20px;
+    display: inline-block;
 }
 </style>
