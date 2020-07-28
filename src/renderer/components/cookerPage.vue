@@ -22,11 +22,11 @@
               </el-tag>
             </el-col>
           </el-row>
-          <el-row style="position:absolute;bottom:0;">
+          <!-- <el-row style="position:absolute;bottom:0;">
             <el-tag style="margin-left:48px;margin-bottom:10px;width:100px;font-size:22px">
               {{isMilk1?'有牛奶':'无牛奶'}}
             </el-tag>
-          </el-row>
+          </el-row> -->
 
         </el-aside>
         <el-aside width="200px"
@@ -50,11 +50,11 @@
             </el-col>
           </el-row>
 
-          <el-row style="position:absolute;bottom:0;">
+          <!-- <el-row style="position:absolute;bottom:0;">
             <el-tag style="margin-left:48px;margin-bottom:100px;width:100px;font-size:22px">
               {{isMilk2?'有牛奶':'无牛奶'}}
             </el-tag>
-          </el-row>
+          </el-row> -->
           <el-row style="position:absolute;bottom:0;">
             <el-button @click="popFoodSelected"
               type="success"
@@ -65,10 +65,16 @@
         </el-aside>
         <el-container>
           <el-header>
-            <el-tag type=" primary"
-              style="font-size:18px;width:200px">
-              内部员工界面
-            </el-tag>
+            <el-col :span="22">
+              <el-tag type=" primary"
+                style="font-size:18px;width:200px">
+                内部员工界面
+              </el-tag>
+            </el-col>
+            <el-col :span="2">
+              <el-button type="success"
+                @click="getFun()">刷新</el-button>
+            </el-col>
           </el-header>
           <el-main>
             <el-row>
@@ -144,7 +150,8 @@ export default {
       if (msg.data === undefined) {
         return
       }
-      if (msg.data.enter) {
+      // 原有的接受逻辑
+      if (msg.data.enter == true) {
         this.enableSwitch = msg.data.enter
         this.changeSwitchValue()
       } else {
@@ -165,6 +172,20 @@ export default {
         this.isMilk2 = this.isMilk1
         this.isMilk1 = msg.data.isMilk
       }
+      // if
+      // if (msg.data.timeBool != this.timeBool) {
+      //   this.getFun()
+      // }
+
+      console.log('msg.data.timeBool', msg.data.timeBool)
+      // 新增接受逻辑改变timebool更新菜品
+      if (msg.data.timeBool !== undefined) {
+        if (msg.data.timeBool != this.nowTimeMealBool) {
+          this.nowTimeMealBool = msg.data.timeBool
+          this.getFun()
+        }
+      }
+
       // if (msg.data != undefined) {
       //   this.switchValue = msg.data.switchValue
       // }

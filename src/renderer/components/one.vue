@@ -2,19 +2,10 @@
   <div>
     <el-container v-loading="mainLoading">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
-        <el-col :span="3">
-          <el-tag type="success"
-            style="width:80%;font-size:22px">
-            牛奶
-            <el-switch v-model="isMilk"
-              active-color="#13ce66"
-              inactive-color="#ff4949">
-            </el-switch>
-          </el-tag>
-        </el-col>
-        <el-col :span="17">
-          <el-tag style="font-size:22px;width:200px">自助点餐系统
-          </el-tag>
+        <el-col :span="20">
+          <!-- <el-tag style="font-size:22px;width:200px">
+            <p></p>
+          </el-tag> -->
         </el-col>
 
         <el-col :span="4">
@@ -44,6 +35,21 @@
             </el-col>
           </el-row>
 
+          <el-row>
+            <el-col :span="24"
+              v-for="(item,index) in milkSelected"
+              :key="'milk'+index"
+              style="height:30px;margin-bottom:18px;">
+              <el-tag :key="item.foodName"
+                @close="handleMilkClose()"
+                style="font-size:22px;width:220px;font-weight:bold"
+                closable
+                :disable-transitions="false">
+                {{item.foodName}}
+              </el-tag>
+            </el-col>
+          </el-row>
+
           <el-row style="position:absolute;bottom:0px;width:100%;">
             <el-button type="danger"
               style="width:100%;height:100px;font-size:24px"
@@ -58,6 +64,35 @@
           <!-- 主界面 -->
           <el-main style="line-height:36px;background:white;">
             <el-row>
+              <el-col :span="4.8"
+                style="margin-left:8px;">
+                <el-button type="primary"
+                  plain
+                  round
+                  v-if="this.configDataLocal.milkMachine=='true'?true:false"
+                  class="buttonclass"
+                  @click="addMilkFun()">
+                  <el-row>
+                    <el-image style="width: 120px; height: 60px"
+                      :src="mikPic"></el-image>
+                  </el-row>
+
+                  <el-row style="margin-top:6px">
+                    <el-col :span="24">
+                      <el-tag style="font-size:22px;font-weight:bold"> 牛奶</el-tag>
+                    </el-col>
+                  </el-row>
+                  <el-row style="margin-top:6px;margin-left:-18px">
+                    <el-col :span="12">
+                      <el-tag type="success"> 价格：{{this.milkPrice}}</el-tag>
+                    </el-col>
+
+                    <el-col :span="12">
+                      <el-tag type="warning"> 优惠价格：0</el-tag>
+                    </el-col>
+                  </el-row>
+                </el-button>
+              </el-col>
               <el-col v-for="(item,index) in movie"
                 :key="'noorderdFood'+index"
                 :span="4.8"
@@ -73,7 +108,7 @@
                       <el-image style="width: 120px; height: 60px"
                         :src="item.Icon"></el-image>
                     </el-row>
-                    <el-row>
+                    <el-row style="margin-top:6px">
                       <el-col :span="24">
                         <el-tag :style="item.Name.length>6?'font-size:18px;font-weight:bold':'font-size:22px;font-weight:bold'"> {{item.Name}}</el-tag>
                       </el-col>
@@ -82,30 +117,34 @@
                       <el-col :span="12">
                         <el-tag type="success"> 价格：{{item.Price}}</el-tag>
                       </el-col>
-
                       <el-col :span="12">
                         <el-tag type="warning"> 优惠价格：{{item.PcPrice}}</el-tag>
                       </el-col>
-
                     </el-row>
-
                   </div>
-
                 </el-button>
               </el-col>
             </el-row>
           </el-main>
           <el-footer style="background-color:#ECF5FF;height:100px">
-            <el-row style="margin-top:30px">
-              <el-col :span="12">
+            <el-row style="margin-top:26px">
+              <el-col :span="9">
                 <el-tag style="font-size:22px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
-              <el-col :span="10">
+              <el-col :span="4">
+                <el-button style="width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
+                  type="danger"
+                  round
+                  @click="exitOrderFood">
+                  退出
+                </el-button>
+              </el-col>
+              <el-col :span="9">
                 <el-tag style="font-size:22px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
               </el-col>
-              <el-col :span="1">
+              <el-col :span="2">
                 <el-button @click="settingPageBool=true"
-                  style="margin-right:-140px">
+                  style="margin-right:-70px">
                   <i class="el-icon-s-tools"></i>
                 </el-button>
               </el-col>
@@ -179,6 +218,7 @@
 import axios from 'axios'
 import Vue from 'vue'
 import fs from 'fs'
+import niunaiPic from '../assets/niunainai.jpg'
 Vue.prototype.$ajax = axios
 
 export default {
@@ -204,25 +244,31 @@ export default {
       childWin: null,
       isFirstTime: true,
       isMilk: false, // isMilk确认是否点牛奶，isFirstMilk确认这个人之前是否点过牛奶
-      isFirstMilk: false,
-      milkPrice: 5,
+      isFirstMilk: 'false',
+      milkPrice: 4.5,
+      milkSelected: [],
       configDataLocal: {
         bt: '',
         lt: '',
         dt: '',
         snNumber: '',
         CafeteriaId: '',
-        baseUrl: ''
+        baseUrl: '',
+        milkMachine: ''
       },
       configTitles: ['早餐时间', '午餐时间', '晚餐时间', '设备号', '餐厅id', '服务器url'],
       urlStr: [],
-      noMoneyBool: false
+      noMoneyBool: false,
+      mikPic: niunaiPic,
+      faceTime: '',
+      faceId: '',
+      createDate: ''
     }
   },
   created: function () {
     console.log('created')
   },
-  async  mounted() {
+  async mounted() {
     console.log('mounted')
 
     // eslint-disable-next-line no-unused-vars
@@ -260,12 +306,33 @@ export default {
   },
 
   methods: {
-
     test2() {
+    },
+    exitOrderFood() {
+      this.milkSelected = []
+      this.movieselected = []
+      this.dialogVisible = true
+    },
+    addMilkFun() {
+      const milkJsonData = {
+        foodName: '牛奶',
+        price: this.milkPrice,
+        yprice: '0.00',
+        foodId: ''
+      }
+      if (!this.isMilk) {
+        if (this.milkSelected.length == 1) {
+          this.$message.error('优惠价只可点一份')
+        } else {
+          this.milkSelected.push(milkJsonData)
+        }
+      } else {
+        this.milkSelected.push(milkJsonData)
+      }
     },
     getMilkPrice() {
       axios.get('Interface/Common/GetMilkPrice.ashx').then(res => {
-        console.log(res)
+        this.milkPrice = res.data.Price
       })
     },
     readConfig() {
@@ -283,6 +350,7 @@ export default {
           this.configDataLocal.snNumber = aaa.snNumber
           this.configDataLocal.CafeteriaId = aaa.CafeteriaId
           this.configDataLocal.baseUrl = aaa.baseUrl
+          this.configDataLocal.milkMachine = aaa.milkMachine
           // 拆分当前url
           console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
           console.log('读完config')
@@ -352,33 +420,93 @@ export default {
       } else {
         console.log('当前不是用餐时段')
         this.$message.error('当前不是用餐时段')
+        this.mainLoading = false
         return 'None'
       }
     },
-    async  endOrder() {
+    async endOrder() {
       // 优惠计算后价格
       // eslint-disable-next-line no-unused-vars
-      let ypriceSum = 0
+      let ypriceSum = parseFloat(0)
       console.log('nowBool:' + this.nowTimeMealBool)
       // 先判断是哪一餐
       switch (true) {
         case this.nowTimeMealBool == 'bt':
+          // 早餐价格变量
+
           console.log('结算早餐')
-          console.log('当前总价：' + this.pricecalculate(this.movieselected))
-          var priceSum = parseFloat(this.pricecalculate(this.movieselected))
-          switch (true) {
-            case priceSum <= this.freeBFPrice:
-              ypriceSum = 0
-              console.log('全部免费')
-              break
-            case priceSum > this.freeBFPrice && priceSum < this.maxBFPrice:
-              ypriceSum = priceSum - this.freeBFPrice
-              console.log('扣你部分钱')
-              break
-            default:
-              console.log('ss')
-              break
+          if (this.isFirstTime) {
+            console.log('早餐首次')
+            this.movieselected.map((item) => {
+              ypriceSum += parseFloat(item.yprice)
+            })
+            // 计算菜品总价
+            switch (true) {
+              case ypriceSum <= this.freeBFPrice:
+                ypriceSum = 0
+                console.log('全部免费')
+                break
+              case ypriceSum > this.freeBFPrice:
+                ypriceSum = ypriceSum - this.freeBFPrice
+                console.log('扣你部分钱')
+                break
+              default:
+                console.log('')
+                break
+            }
+          } else {
+            console.log('早餐非首次')
+            this.movieselected.map((item) => {
+              ypriceSum += parseFloat(item.price)
+            })
           }
+
+          // 加上牛奶价格
+          if (!this.isFirstMilk) {
+            ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+          }
+
+          // 价钱取整处理
+          this.allsum = ypriceSum.toFixed(2)
+          // 确认金额之后提交
+          this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+            confirmButtonClass: 'confirmButtonClass',
+            customMessgeBoxClass: 'customMessgeBoxClass',
+            cancelButtonClass: 'cancelButtonClass'
+          }).then(() => {
+            // 判断扣费后是否足够钱
+            if (parseFloat(this.nowOrderManLeftMoney) - payPrice < 0) {
+              // 开启遮罩层
+              this.$alert('抱歉！您的余额不足', '通知', {
+                confirmButtonText: '确定',
+                callback: action => {
+                  this.noMoneyBool = true
+                  this.dialogVisible = true
+                  this.nowOrderManName = ''
+                  this.nowOrderManLeftMoney = parseFloat(0)
+                  this.movieselected = []
+                  this.milkSelected = []
+                }
+              })
+            } else {
+              // 确定
+              console.log('确定')
+              this.mainLoading = true
+              this.submitFun()
+              this.sendMenuMeg()
+              this.mainLoading = false
+              // 开启遮罩层
+              this.dialogVisible = true
+              this.nowOrderManName = ''
+              this.nowOrderManLeftMoney = parseFloat(0)
+            }
+          }).catch(() => {
+            // 取消
+            console.log('取消')
+          })
           break
         // //////////计算午晚餐价格///////////////////
         case this.nowTimeMealBool == 'lt' || this.nowTimeMealBool == 'dt':
@@ -407,20 +535,32 @@ export default {
               break
           }
 
-          console.log('午晚餐总价格:', ypriceSum)
-          var payPrice = parseFloat(ypriceSum) - parseFloat(this.freeDNPrice)
+          var payPrice = '0.00'
+          if (this.isFirstTime == true) {
+            // 总价减去免费金额10元
+            payPrice = parseFloat(ypriceSum) - parseFloat(this.freeDNPrice)
+            // 小于免费金额的化为免费，价格0
+            if (payPrice < 0) { payPrice = 0 }
+          } else {
+            // 非首次按原价收费
+            let yuanPriceSum = 0
+            this.movieSelected.forEach(element => {
+              yuanPriceSum += parseFloat(element.price)
+            })
+            payPrice = parseFloat(yuanPriceSum)
+          }
           console.log('扣费后价格：', payPrice)
-          // 小于免费金额的化为免费，价格0
-          if (payPrice < 0) { payPrice = 0 }
-          // 总价减去免费金额10元
+
+          console.log('this.milkSelected.length', this.milkSelected.length)
 
           // 价格加上牛奶价格
-          if (this.isMilk) {
-            payPrice += parseFloat(this.milkPrice)
+          if (this.isFirstMilk == false) {
+            payPrice += parseFloat(parseFloat(this.milkPrice) * this.milkSelected.length)
           }
 
+          // 价钱取整处理
           this.allsum = payPrice.toFixed(2)
-
+          // 确认金额之后提交
           this.$confirm('此餐消费金额为' + this.allsum + '元,确认提交吗?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -440,6 +580,7 @@ export default {
                   this.nowOrderManName = ''
                   this.nowOrderManLeftMoney = parseFloat(0)
                   this.movieselected = []
+                  this.milkSelected = []
                 }
               })
             } else {
@@ -469,8 +610,11 @@ export default {
       }
     },
     sendMenuMeg() {
-      this.fatherDataSend(false, this.movieselected, this.isMilk)
+      // 拼接成一个大数组
+      const bigSelected = [...this.movieselected, ...this.milkSelected]
+      this.fatherDataSend(false, bigSelected, this.isMilk)
       this.movieselected = []
+      this.milkSelected = []
     },
     timeBoolChange(booltime) {
       switch (booltime) {
@@ -496,21 +640,33 @@ export default {
       }
       this.childWin.postMessage(fatherData)
     },
+
+    fatherDataSendTimeBoolChange(timeBool) {
+      var fatherData = {
+        timeBool: timeBool
+      }
+      this.childWin.postMessage(fatherData)
+    },
     async enterOrder() {
       console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
       this.mainLoading = true
       this.isMilk = false
       this.fatherDataSend(true)
-      // 请求对应排餐和排餐id
-      this.clickFun()
+
       // 请求是否在排餐时段
       var inOrderTimeBool = this.timeJudge()
+      if (inOrderTimeBool != this.nowTimeMealBool) {
+        console.log('当前时间状态已经改变')
+        this.fatherDataSendTimeBoolChange(this.timeBoolChange(inOrderTimeBool))
+      }
+      // 请求对应排餐和排餐id
+      this.clickFun()
+
       if (inOrderTimeBool != 'None') {
         this.nowTimeMealBool = inOrderTimeBool
 
-        console.log('mealIIIID', this.getMeadlId)
         this.mainLoading = false
-        this.dialogVisible = false
+        //    this.dialogVisible = false
       }
     },
     async getUserData() {
@@ -518,29 +674,42 @@ export default {
       axios.get('/Interface/Common/GetUserData.ashx', {
         params: {
           sn: this.configDataLocal.snNumber, // this.SNid,
-          cookbookSetInDateId: this.getMeadlId// this.getMeadlId
+          cookbookEnum: this.timeBoolChange(this.nowTimeMealBool) // this.getMeadlId,
         }
       }).then(res => {
-        if (res.data.HolidaysPreferential.length == 0) {
-          console.log(res.data.HolidaysPreferential.length, '我不是节日')
-          this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
-          this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
-          this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
-          this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+        if (res.data != '') {
+          console.log('userData', res, this.configDataLocal.snNumber)
+          if (res.data.HolidaysPreferential.length == 0) {
+            console.log(res.data.HolidaysPreferential.length, '我不是节日')
+            this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
+            this.maxBFPrice = res.data.CategoryPreferential.BreakfastPreferential // 早餐优惠金额
+            this.freeDNPrice = res.data.CategoryPreferential.LunchSupperPreferential// 午晚餐优惠金额
+            this.freeFoodNum = res.data.CategoryPreferential.LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+          } else {
+            console.log(res.data.HolidaysPreferential.length, '我是节日')
+            this.freeBFPrice = res.data.HolidaysPreferential[0].BreakfastFree// 早餐全免金额
+            this.maxBFPrice = res.data.HolidaysPreferential[0].BreakfastPreferential // 早餐优惠金额
+            this.freeDNPrice = res.data.HolidaysPreferential[0].LunchSupperPreferential// 午晚餐优惠金额
+            this.freeFoodNum = res.data.HolidaysPreferential[0].LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+          }
+          console.log(res.data)
+          this.faceId = res.data.FaceData[0].recordid
+          this.faceTime = res.data.FaceData[0].Facetime
+          this.createDate = res.data.FaceData[0].CreateTime
+          this.nowOrderManName = res.data.PcInfo.Name
+          this.informationNum = res.data.PcInfo.InformationNum
+          this.nowOrderManLeftMoney = res.data.PcInfo.Amount
+          this.isFirstTime = res.data.IsFristOrderMeal// res.data.IsFristOrderMeal
+          this.isFirstMilk = res.data.IsFristMilk
+          this.nowTimeMealBool = this.timeJudge()
+          console.log('this.isFirstMilkthis.isFirstMilk', this.isFirstMilk)
+          if (this.nowTimeMealBool != 'None') {
+            this.dialogVisible = false// 取消遮罩层
+          }
+          this.mainLoading = false// 取消loading
         } else {
-          console.log(res.data.HolidaysPreferential.length, '我是节日')
-          this.freeBFPrice = res.data.HolidaysPreferential[0].BreakfastFree// 早餐全免金额
-          this.maxBFPrice = res.data.HolidaysPreferential[0].BreakfastPreferential // 早餐优惠金额
-          this.freeDNPrice = res.data.HolidaysPreferential[0].LunchSupperPreferential// 午晚餐优惠金额
-          this.freeFoodNum = res.data.HolidaysPreferential[0].LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
+          this.$message.error('无法获取到有效用户')
         }
-        console.log(res.data)
-
-        this.nowOrderManName = res.data.PcInfo.Name
-        this.informationNum = res.data.PcInfo.InformationNum
-        this.nowOrderManLeftMoney = res.data.PcInfo.Amount
-        this.isFirstTime = true// res.data.IsFristOrderMeal
-        this.isFirstMilk = res.data.isFirstMilk
       })
     },
     // 处理点菜品取消×函数
@@ -550,6 +719,10 @@ export default {
         this.movieselected.findIndex(value => value.foodName == foodName),
         1
       )
+    },
+    // 处理点牛奶取消×函数
+    handleMilkClose() {
+      this.milkSelected.pop()
     },
     // 支付成功提示
     successNotice() {
@@ -604,10 +777,15 @@ export default {
           informationNum: this.informationNum, // this.informationNum,
           cookbookSetInDateId: this.getMeadlId,
           cookbookIds: this.getFoodsIds(),
-          isMilk: this.isMilk,
-          createDate: this.getTodayDate()
+          isMilk: this.milkSelected.length,
+          createDate: this.createDate,
+          faceTime: this.faceTime,
+          faceId: this.faceId,
+          sn: this.configDataLocal.snNumber,
+          cookbookEnum: this.timeBoolChange(this.nowTimeMealBool)
         }
       }).then(res => {
+        this.$message.success('消费成功！')
         console.log('clickfun:', res)
       })
     },
@@ -621,13 +799,21 @@ export default {
         }
       }).then(res => {
         console.log('返回菜品', res.data)
+        if (res.data == '') {
+          this.$message.error('当前餐次查无排餐')
+          return
+        }
         this.movie = res.data.cookbooks
         this.getMeadlId = res.data.cookbookSetInDate.Id.toString()
         console.log('this.getMeadlId ', this.getMeadlId)
-        this.movie.forEach(element => {
-          this.switchValue.push(true)
-        })
-        this.getUserData()
+        try {
+          this.movie.forEach(element => {
+            this.switchValue.push(true)
+          })
+          this.getUserData()
+        } catch (error) {
+          console.log('switchValue-error', error)
+        }
       })
     },
     // 获取当天年月日
