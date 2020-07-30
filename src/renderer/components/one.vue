@@ -3,9 +3,9 @@
     <el-container v-loading="mainLoading">
       <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
         <el-col :span="20">
-          <!-- <el-tag style="font-size:22px;width:200px">
-            <p></p>
-          </el-tag> -->
+          <el-tag :v-if="false"
+            style="font-size:22px;width:200px;border:None">
+          </el-tag>
         </el-col>
 
         <el-col :span="4">
@@ -144,7 +144,7 @@
               </el-col>
               <el-col :span="2">
                 <el-button @click="settingPageBool=true"
-                  style="margin-right:-70px">
+                  style="margin-right:-140px">
                   <i class="el-icon-s-tools"></i>
                 </el-button>
               </el-col>
@@ -262,7 +262,8 @@ export default {
       mikPic: niunaiPic,
       faceTime: '',
       faceId: '',
-      createDate: ''
+      createDate: '',
+      isDutyVaild: false
     }
   },
   created: function () {
@@ -320,7 +321,7 @@ export default {
         yprice: '0.00',
         foodId: ''
       }
-      if (!this.isMilk) {
+      if (!this.isFirstMilk) {
         if (this.milkSelected.length == 1) {
           this.$message.error('优惠价只可点一份')
         } else {
@@ -386,7 +387,7 @@ export default {
       return sum
     },
     // 时间判断函数
-    timeJudge() {
+    async timeJudge() {
       const dateNow = new Date()
       const nowCount =
         dateNow.getHours(dateNow) * 60 + dateNow.getMinutes(dateNow)
@@ -419,19 +420,57 @@ export default {
         return 'dt'
       } else {
         console.log('当前不是用餐时段')
-        this.$message.error('当前不是用餐时段')
+        //  this.$message.error('当前不是用餐时段')
         this.mainLoading = false
         return 'None'
       }
     },
-    async endOrder() {
+    // 时间判断函数
+    async dutyTimeJudge() {
+      const dateNow = new Date()
+      const nowCount =
+        dateNow.getHours(dateNow) * 60 + dateNow.getMinutes(dateNow)
+      // /////////////////1/
+      const bt = this.configDataLocal.bt.split('-')
+      const bt1 =
+        parseInt(bt[0].split(':')[0]) * 60 + parseInt(bt[0].split(':')[1]) - 30
+      const bt2 =
+        parseInt(bt[1].split(':')[0]) * 60 + parseInt(bt[1].split(':')[1]) + 30
+      const lt = this.configDataLocal.lt.split('-')
+      const lt1 =
+        parseInt(lt[0].split(':')[0]) * 60 + parseInt(lt[0].split(':')[1]) - 30
+      const lt2 =
+        parseInt(lt[1].split(':')[0]) * 60 + parseInt(lt[1].split(':')[1]) + 30
+      const dt = this.configDataLocal.dt.split('-')
+      const dt1 =
+        parseInt(dt[0].split(':')[0]) * 60 + parseInt(dt[0].split(':')[1]) - 30
+      const dt2 =
+        parseInt(dt[1].split(':')[0]) * 60 + parseInt(dt[1].split(':')[1]) + 30
+
+      console.log('nowCount', nowCount)
+      if (nowCount > bt1 && nowCount < bt2) {
+        console.log('当前是早餐时段')
+        return 'Breakfast'
+      } else if (nowCount > lt1 && nowCount < lt2) {
+        console.log('当前是午餐时段')
+        return 'Lunch'
+      } else if (nowCount > dt1 && nowCount < dt2) {
+        console.log('当前是晚餐时段', dt1, dt2)
+        return 'Supper'
+      } else {
+        console.log('当前不是用餐时段')
+        this.mainLoading = false
+        return 'None'
+      }
+    },
+    endOrder() {
       // 优惠计算后价格
       // eslint-disable-next-line no-unused-vars
       let ypriceSum = parseFloat(0)
       console.log('nowBool:' + this.nowTimeMealBool)
       // 先判断是哪一餐
       switch (true) {
-        case this.nowTimeMealBool == 'bt':
+        case this.nowTimeMealBool == 'Breakfast':
           // 早餐价格变量
 
           console.log('结算早餐')
@@ -509,7 +548,7 @@ export default {
           })
           break
         // //////////计算午晚餐价格///////////////////
-        case this.nowTimeMealBool == 'lt' || this.nowTimeMealBool == 'dt':
+        case this.nowTimeMealBool == 'Lunch' || this.nowTimeMealBool == 'Supper':
           console.log('结算午晚餐')
           this.movieSelected = this.movieselected.sort(sortby)
           switch (true) {
@@ -616,7 +655,7 @@ export default {
       this.movieselected = []
       this.milkSelected = []
     },
-    timeBoolChange(booltime) {
+    async timeBoolChange(booltime) {
       switch (booltime) {
         case 'bt':
 
@@ -647,38 +686,112 @@ export default {
       }
       this.childWin.postMessage(fatherData)
     },
-    async enterOrder() {
+    enterOrder() {
+      const inOrderTimeBool = this.timeJudge()
+
+      inOrderTimeBool.then((res) => {
+        // 时间位转换
+        switch (res) {
+          case 'bt':
+            res = 'Breakfast'
+            break
+          case 'lt':
+            res = 'Lunch'
+            break
+          case 'dt':
+            res = 'Supper'
+            break
+          default:
+            break
+        }
+        if (res == 'None') {
+          const timeBoolPromiss = this.dutyTimeJudge()
+          timeBoolPromiss.then((timeRes) => {
+            // 把时间往里面丢
+            const afterGetUserData = this.getUserData(timeRes)
+            afterGetUserData.then((userData) => {
+              // 判断当前时间是否为前后半小时时间内
+              if (userData.isDutyVaild) {
+                this.enterOrder_noduty(timeRes)
+                this.dialogVisible = false
+              } else {
+                this.$message.error('非值班人员不得在非用餐时间用餐')
+              }
+            })
+          })
+        } else {
+          // 把时间往里面丢
+          const afterGetUserData = this.getUserData(res)
+          afterGetUserData.then((userRes) => {
+            if (userRes.isGetVaildUser) {
+              this.enterOrder_noduty(res)
+              this.dialogVisible = false// 取消遮罩层
+            }
+          })
+        }
+
+        // // const afterGetUserData = this.getUserData(res)
+        // afterGetUserData.then((userData) => {
+        //   console.log('userData', this.timeBool)
+
+        //   //  判断值班人员是否有效
+        //   if (userData.isDutyVaild) {
+        //     const timeBoolPromiss = this.dutyTimeJudge()
+        //     timeBoolPromiss.then((timeRes) => {
+        //       // 判断当前时间是否为前后半小时时间内
+        //       if (timeRes) {
+        //         this.enterOrder_noduty(userData.timeBool)
+        //       } else {
+        //         this.$message.error('非值班人员不得在非用餐时间用餐')
+        //       }
+        //     })
+        //   } else {
+        //     this.$message.error('当前不是用餐时段')
+        //   }
+        // })
+      })
+
+      console.log(inOrderTimeBool)
+      // await this.getUserData(inOrderTimeBool)
+      // this.addData()
+    },
+
+    async enterOrder_noduty(inOrderTimeBool) {
       console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
       this.mainLoading = true
       this.isMilk = false
       this.fatherDataSend(true)
 
-      // 请求是否在排餐时段
-      var inOrderTimeBool = this.timeJudge()
       if (inOrderTimeBool != this.nowTimeMealBool) {
         console.log('当前时间状态已经改变')
         this.fatherDataSendTimeBoolChange(this.timeBoolChange(inOrderTimeBool))
       }
       // 请求对应排餐和排餐id
-      this.clickFun()
+      this.clickFun(inOrderTimeBool)
 
       if (inOrderTimeBool != 'None') {
         this.nowTimeMealBool = inOrderTimeBool
 
         this.mainLoading = false
-        //    this.dialogVisible = false
       }
     },
-    async getUserData() {
-      // 获取当前人员人脸信息
-      axios.get('/Interface/Common/GetUserData.ashx', {
+    async getUserDataPromiss(timebool) {
+      return await axios.get('/Interface/Common/GetUserData.ashx', {
         params: {
           sn: this.configDataLocal.snNumber, // this.SNid,
-          cookbookEnum: this.timeBoolChange(this.nowTimeMealBool) // this.getMeadlId,
+          cookbookEnum: timebool // this.getMeadlId,
         }
-      }).then(res => {
+      })
+    },
+    async getUserData(inOrderTimeBool) {
+      // 获取当前人员人脸信息
+      const ppromiss = this.getUserDataPromiss(inOrderTimeBool)
+      let isGetVaildUser = false
+      const ppromiss2 = ppromiss.then(res => {
+        console.log(11111111111111111111)
         if (res.data != '') {
           console.log('userData', res, this.configDataLocal.snNumber)
+          // 节假日判断
           if (res.data.HolidaysPreferential.length == 0) {
             console.log(res.data.HolidaysPreferential.length, '我不是节日')
             this.freeBFPrice = res.data.CategoryPreferential.BreakfastFree// 早餐全免金额
@@ -692,6 +805,27 @@ export default {
             this.freeDNPrice = res.data.HolidaysPreferential[0].LunchSupperPreferential// 午晚餐优惠金额
             this.freeFoodNum = res.data.HolidaysPreferential[0].LunchSupperPreferentialCookbookCount// 中晚餐优惠价菜品数量
           }
+          // 值班判断存值
+          // ！=0是值班人员有返回值
+          if (res.data.DutyDict.length != 0) {
+            const dutyMealValue = res.data.DutyDict[0].PCStaffDutyInfo.CookbookEnums
+            switch (true) {
+              case dutyMealValue == 'ALL':
+                this.isDutyVaild = true
+
+                break
+              case dutyMealValue.includes(','):
+                // 如果包含逗号，则拆开餐次对比
+                dutyMealValue.split(',').map((item) => {
+                  if (inOrderTimeBool == item) {
+                    this.isDutyVaild = true
+                  }
+                })
+                break
+              default:
+                break
+            }
+          }
           console.log(res.data)
           this.faceId = res.data.FaceData[0].recordid
           this.faceTime = res.data.FaceData[0].Facetime
@@ -701,16 +835,18 @@ export default {
           this.nowOrderManLeftMoney = res.data.PcInfo.Amount
           this.isFirstTime = res.data.IsFristOrderMeal// res.data.IsFristOrderMeal
           this.isFirstMilk = res.data.IsFristMilk
-          this.nowTimeMealBool = this.timeJudge()
+          this.nowTimeMealBool = inOrderTimeBool
           console.log('this.isFirstMilkthis.isFirstMilk', this.isFirstMilk)
-          if (this.nowTimeMealBool != 'None') {
-            this.dialogVisible = false// 取消遮罩层
-          }
+          isGetVaildUser = true
           this.mainLoading = false// 取消loading
         } else {
           this.$message.error('无法获取到有效用户')
+          isGetVaildUser = false
         }
+
+        return { timeBool: inOrderTimeBool, isDutyVaild: this.isDutyVaild, isGetVaildUser: isGetVaildUser }
       })
+      return ppromiss2
     },
     // 处理点菜品取消×函数
     handleClose(foodName) {
@@ -790,11 +926,11 @@ export default {
       })
     },
     // 获取菜单
-    clickFun() {
+    clickFun(timeBool) {
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
           CafeteriaId: this.configDataLocal.CafeteriaId,
-          CookbookEnum: this.timeBoolChange(this.nowTimeMealBool),
+          CookbookEnum: timeBool,
           Datetime: this.getTodayDate()
         }
       }).then(res => {
@@ -810,7 +946,6 @@ export default {
           this.movie.forEach(element => {
             this.switchValue.push(true)
           })
-          this.getUserData()
         } catch (error) {
           console.log('switchValue-error', error)
         }
