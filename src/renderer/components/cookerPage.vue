@@ -16,7 +16,7 @@
               :key="'orderdFood'+index"
               style="height:30px;margin-bottom:10px;">
               <el-tag :key="item.foodName"
-                style="font-size:16px;width:160px;"
+                style="font-size:18px;font-weight:bold;width:160px;"
                 :disable-transitions="false">
                 {{item.foodName}}
               </el-tag>
@@ -43,7 +43,7 @@
               :key="'orderdFood2'+index"
               style="height:30px;margin-bottom:10px;">
               <el-tag :key="item.foodName"
-                style="font-size:16px;width:160px;"
+                style="font-size:18px;font-weight:bold;width:160px;"
                 :disable-transitions="false">
                 {{item.foodName}}
               </el-tag>
@@ -73,7 +73,7 @@
             </el-col>
             <el-col :span="2">
               <el-button type="success"
-                @click="getFun()">刷新</el-button>
+                @click="getFun(nowTimeMealBool)">刷新</el-button>
             </el-col>
           </el-header>
           <el-main>
@@ -143,7 +143,7 @@ export default {
     this.axiosUrl = axiosUrlstr1 + ':' + axiosUrlstr2
     console.log('读完配置', afterUrl)
     axios.defaults.baseURL = 'http://' + this.axiosUrl
-    this.getFun()
+    this.getFun(this.nowTimeMealBool)
 
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
@@ -172,17 +172,13 @@ export default {
         this.isMilk2 = this.isMilk1
         this.isMilk1 = msg.data.isMilk
       }
-      // if
-      // if (msg.data.timeBool != this.timeBool) {
-      //   this.getFun()
-      // }
 
       console.log('msg.data.timeBool', msg.data.timeBool)
       // 新增接受逻辑改变timebool更新菜品
       if (msg.data.timeBool !== undefined) {
         if (msg.data.timeBool != this.nowTimeMealBool) {
           this.nowTimeMealBool = msg.data.timeBool
-          this.getFun()
+          this.getFun(msg.data.timeBool)
         }
       }
 
@@ -206,6 +202,43 @@ export default {
   },
 
   methods: {
+    async dutyTimeJudge() {
+      const dateNow = new Date()
+      const nowCount =
+        dateNow.getHours(dateNow) * 60 + dateNow.getMinutes(dateNow)
+      // /////////////////1/
+      const bt = this.configDataLocal.bt.split('-')
+      const bt1 =
+        parseInt(bt[0].split(':')[0]) * 60 + parseInt(bt[0].split(':')[1]) - 30
+      const bt2 =
+        parseInt(bt[1].split(':')[0]) * 60 + parseInt(bt[1].split(':')[1]) + 30
+      const lt = this.configDataLocal.lt.split('-')
+      const lt1 =
+        parseInt(lt[0].split(':')[0]) * 60 + parseInt(lt[0].split(':')[1]) - 30
+      const lt2 =
+        parseInt(lt[1].split(':')[0]) * 60 + parseInt(lt[1].split(':')[1]) + 30
+      const dt = this.configDataLocal.dt.split('-')
+      const dt1 =
+        parseInt(dt[0].split(':')[0]) * 60 + parseInt(dt[0].split(':')[1]) - 30
+      const dt2 =
+        parseInt(dt[1].split(':')[0]) * 60 + parseInt(dt[1].split(':')[1]) + 30
+
+      console.log('nowCount', nowCount)
+      if (nowCount > bt1 && nowCount < bt2) {
+        console.log('当前是早餐时段')
+        return 'Breakfast'
+      } else if (nowCount > lt1 && nowCount < lt2) {
+        console.log('当前是午餐时段')
+        return 'Lunch'
+      } else if (nowCount > dt1 && nowCount < dt2) {
+        console.log('当前是晚餐时段', dt1, dt2)
+        return 'Supper'
+      } else {
+        console.log('当前不是用餐时段')
+        this.mainLoading = false
+        return 'None'
+      }
+    },
     popFoodSelected() {
       this.bigFoodSelected.shift()
       this.foodSelected2 = this.foodSelected1
@@ -250,13 +283,11 @@ export default {
       var currentdate = year + seperator1 + month + seperator1 + strDate
       return currentdate
     },
-    async getFun() {
-      // alert('id+bool' + this.CafeteriaId + 'bool' + this.nowTimeMealBool)
-      // alert('axios.defaults.baseURL', axios.defaults.baseURL)
+    getFun(nowTimeMealBool) {
       axios.get('/Interface/Common/GetCookbookSetInDate.ashx', {
         params: {
           CafeteriaId: this.CafeteriaId,
-          CookbookEnum: this.nowTimeMealBool,
+          CookbookEnum: nowTimeMealBool,
           Datetime: this.getTodayDate()
         }
       }).then(res => {

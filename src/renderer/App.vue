@@ -26,8 +26,9 @@ export default {
 
 <style>
 #app {
-    font-family: 'Helvetica Neue', Helvetica, 'Hiragino Sans GB',
-        'Microsoft YaHei', Arial, sans-serif;
+    /* font-family: 'Helvetica Neue', Helvetica, 'Hiragino Sans GB',
+        'Microsoft YaHei', Arial, sans-serif; */
+    font-family: '微软雅黑';
 }
 /* CSS */
 #firstPage {

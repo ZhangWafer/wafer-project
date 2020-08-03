@@ -21,18 +21,20 @@ function createWindow() {
    */
   mainWindow = new BrowserWindow({
     height: 563,
-    useContentSize: true,
     width: 1000,
+    useContentSize: true,
     center: true,
-    fullscreen: false,
+    fullscreen: true,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false
-    }
+    },
+    frame: false
   })
 
   mainWindow.loadURL(winURL)
+  // mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', () => {
     mainWindow = null
