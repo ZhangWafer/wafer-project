@@ -73,7 +73,7 @@
             </el-col>
             <el-col :span="2">
               <el-button type="success"
-                @click="getFun(nowTimeMealBool)">刷新</el-button>
+                @click="getNowTimeBool()">刷新</el-button>
             </el-col>
           </el-header>
           <el-main>
@@ -181,7 +181,9 @@ export default {
           this.getFun(msg.data.timeBool)
         }
       }
-
+      if (msg.data.nowTimeData != undefined) {
+        this.getFun(msg.data.nowTimeData)
+      }
       // if (msg.data != undefined) {
       //   this.switchValue = msg.data.switchValue
       // }
@@ -264,6 +266,12 @@ export default {
 
       }
       window.opener.postMessage(cookSendData)
+    },
+    getNowTimeBool() {
+      const jsonData = {
+        getNowTimeBool: true
+      }
+      window.opener.postMessage(jsonData)
     },
     changeFun() {
       console.log('按开关啦！')

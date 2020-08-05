@@ -1,18 +1,6 @@
 <template>
   <div>
     <el-container v-loading="mainLoading">
-      <!-- <el-header style="background-color:#ECF5FF;color:#409EFF;font-size:18px;font-weight:bold;">
-        <el-col :span="20">
-          <p style="font-size:22px;width:200px;border:None"></p>
-          <!-- <el-tag :v-if="false"
-            style="font-size:22px;width:200px;border:None">
-          </el-tag> -->
-      <!-- </el-col> -->
-
-      <!-- <el-col :span="4">
-        <p></p> <!-- <el-tag style="font-size:18px">早餐</el-tag> -->
-      <!-- </el-col>
-      </el-header> -->
       <el-container>
         <!-- 侧界面 -->
         <el-aside style="1ine-height:30px;background:rgb(251,251,251);position:relative;"
@@ -52,6 +40,11 @@
           </el-row>
 
           <el-row style="position:absolute;bottom:0px;width:100%;">
+            <el-tag type="success"
+              style="width:100%;height:100px;font-size:24px">
+              <p style="margin-top:10px;font-size:20px">已点价格：{{showAllSumPrice}}</p>
+              <p style="font-size:20px">已点优惠价格：{{showAllSumYPrice}}</p>
+            </el-tag>
             <el-button type="warning"
               style="width:100%;height:100px;font-size:24px"
               @click="endOrder">
@@ -128,18 +121,18 @@
           <el-footer style="background-color:#ECF5FF;height:100px">
             <el-row style="margin-top:26px">
               <el-col :span="9">
-                <el-tag style="font-size:22px">当前点餐人：{{nowOrderManName}}</el-tag>
+                <el-tag style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
               <el-col :span="4">
-                <el-button style="width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
-                  type="warning"
+                <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
+                  type="danger"
                   round
                   @click="exitOrderFood">
                   退出
                 </el-button>
               </el-col>
               <el-col :span="9">
-                <el-tag style="font-size:22px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+                <el-tag style="height:44px;font-size:32px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
               </el-col>
               <el-col :span="2">
                 <el-button @click="settingPageBool=true"
@@ -255,7 +248,7 @@ export default {
       isFirstTime: true,
       isMilk: false, // isMilk确认是否为牛奶专窗，
       isFirstMilk: 'false', // isFirstMilk确认这个人之前是否点过牛奶，是否首次点奶
-      milkPrice: 4.5,
+      milkPrice: '',
       milkSelected: [],
       configDataLocal: {
         bt: '',
@@ -274,7 +267,9 @@ export default {
       faceId: '',
       createDate: '',
       isDutyVaild: false,
-      isMilkButtonShow: true
+      isMilkButtonShow: true,
+      showAllSumYPrice: parseFloat(0.00),
+      showAllSumPrice: parseFloat(0.00)
     }
   },
   created: function () {
@@ -295,7 +290,12 @@ export default {
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
       if (msg.data != undefined) {
-        this.switchValue = msg.data.switchValue
+        if (msg.data.switchValue != undefined) {
+          this.switchValue = msg.data.switchValue
+        }
+        if (msg.data.getNowTimeBool != undefined) {
+          this.timeBoolSend()
+        }
       }
     })
   },
@@ -319,6 +319,24 @@ export default {
   methods: {
     test2() {
     },
+    showAllSumPriceFun() {
+      this.showAllSumYPrice = parseFloat(0)
+      this.showAllSumPrice = parseFloat(0)
+      this.movieselected.map((item) => {
+        this.showAllSumYPrice += parseFloat(item.yprice)
+      })
+      this.movieselected.map((item) => {
+        this.showAllSumPrice += parseFloat(item.price)
+      })
+      this.movieselected
+      if (!this.isFirstMilk) {
+        this.showAllSumYPrice += parseFloat(this.milkPrice) * this.milkSelected.length
+        this.showAllSumPrice += parseFloat(this.milkPrice) * this.milkSelected.length
+        // 非首次牛奶加上牛奶价格
+      }
+      this.showAllSumYPrice.toFixed(2)
+      this.showAllSumPrice.toFixed(2)
+    },
     closeWin() {
       const w = remote.getCurrentWindow()
       w.close()
@@ -327,6 +345,8 @@ export default {
       this.milkSelected = []
       this.movieselected = []
       this.dialogVisible = true
+      this.showAllSumYPrice = parseFloat(0)
+      this.showAllSumPrice = parseFloat(0)
     },
     addMilkFun() {
       const milkJsonData = {
@@ -344,9 +364,11 @@ export default {
           this.$message.error('优惠价只可点一份')
         } else {
           this.milkSelected.push(milkJsonData)
+          this.showAllSumPriceFun()
         }
       } else {
         this.milkSelected.push(milkJsonData)
+        this.showAllSumPriceFun()
       }
     },
     getMilkPrice() {
@@ -542,13 +564,19 @@ export default {
               // 确定
               console.log('确定')
               this.mainLoading = true
-              this.submitFun()
-              this.sendMenuMeg()
-              this.mainLoading = false
-              // 开启遮罩层
-              this.dialogVisible = true
-              this.nowOrderManName = ''
-              this.nowOrderManLeftMoney = parseFloat(0)
+
+              setTimeout(() => {
+                console.log('等待时间到')
+                this.mainLoading = false
+                this.submitFun()
+                this.sendMenuMeg()
+                // 开启遮罩层
+                this.dialogVisible = true
+                this.showAllSumYPrice = parseFloat(0)
+                this.showAllSumPrice = parseFloat(0)
+                this.nowOrderManName = ''
+                this.nowOrderManLeftMoney = parseFloat(0)
+              }, 1500)
             }
           }).catch(() => {
             // 取消
@@ -623,13 +651,19 @@ export default {
               // 确定
               console.log('确定')
               this.mainLoading = true
-              this.submitFun()
-              this.sendMenuMeg()
-              this.mainLoading = false
-              // 开启遮罩层
-              this.dialogVisible = true
-              this.nowOrderManName = ''
-              this.nowOrderManLeftMoney = parseFloat(0)
+
+              setTimeout(() => {
+                console.log('等待时间到')
+                this.mainLoading = false
+                this.submitFun()
+                this.sendMenuMeg()
+                // 开启遮罩层
+                this.dialogVisible = true
+                this.showAllSumYPrice = parseFloat(0)
+                this.showAllSumPrice = parseFloat(0)
+                this.nowOrderManName = ''
+                this.nowOrderManLeftMoney = parseFloat(0)
+              }, 1500)
             }
           }).catch(() => {
             // 取消
@@ -651,6 +685,14 @@ export default {
       this.fatherDataSend(false, bigSelected, this.isMilk)
       this.movieselected = []
       this.milkSelected = []
+    },
+    timeBoolSend() {
+      this.dutyTimeJudge().then((timeBool) => {
+        var nowTimeData = {
+          nowTimeData: timeBool
+        }
+        this.childWin.postMessage(nowTimeData)
+      })
     },
     fatherDataSend(boolValue, foodSelected, isMilk) {
       var fatherData = {
@@ -850,10 +892,12 @@ export default {
         this.movieselected.findIndex(value => value.foodName == foodName),
         1
       )
+      this.showAllSumPriceFun()
     },
     // 处理点牛奶取消×函数
     handleMilkClose() {
       this.milkSelected.pop()
+      this.showAllSumPriceFun()
     },
     // 支付成功提示
     successNotice() {
@@ -884,6 +928,7 @@ export default {
           jsonData.yprice = yprice
           jsonData.foodId = foodId
           this.movieselected.push(jsonData)
+          this.showAllSumPriceFun()
         } else {
           this.$message.error('抱歉，您点的菜品数量过多')
         }
@@ -895,6 +940,7 @@ export default {
             jsonData.yprice = yprice
             jsonData.foodId = foodId
             this.movieselected.push(jsonData)
+            this.showAllSumPriceFun()
             console.log(this.movieselected)
           } else {
             this.$message.error('优惠价只可点一份')
@@ -906,6 +952,7 @@ export default {
             jsonData.yprice = yprice
             jsonData.foodId = foodId
             this.movieselected.push(jsonData)
+            this.showAllSumPriceFun()
           } else {
             this.$message.error('抱歉，您点的菜品数量过多')
           }
@@ -933,7 +980,14 @@ export default {
           cookbookEnum: this.nowTimeMealBool
         }
       }).then(res => {
-        this.$message.success('消费成功！')
+        this.$message.success('')
+
+        this.$message({
+          dangerouslyUseHTMLString: true,
+          duration: 5000,
+          message: '<strong> <i style="margin-left:40px;font-size:36px;color:red;">消费成功！</i> </strong>'
+        })
+
         console.log('clickfun:', res)
       })
     },
@@ -979,10 +1033,10 @@ export default {
     border: #87ea56;
     background-color: #87ea56;
 }
-.el-button--warning {
+/* .el-button--warning {
     border: #fb7d63;
     background-color: #fb7d63;
-}
+} */
 .el-header {
     /* background: rgb(236, 245, 255); */
     background: rgb(101, 174, 255) !important;
