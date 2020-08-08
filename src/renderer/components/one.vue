@@ -320,22 +320,25 @@ export default {
     test2() {
     },
     showAllSumPriceFun() {
-      this.showAllSumYPrice = parseFloat(0)
-      this.showAllSumPrice = parseFloat(0)
+      console.log('当前菜品和牛奶', this.milkSelected, this.movieselected)
+      let ypriceSum = parseFloat(0)
+      let priceSum = parseFloat(0)
+      // this.showAllSumYPrice = parseFloat(0)
+      // this.showAllSumPrice = parseFloat(0)
       this.movieselected.map((item) => {
-        this.showAllSumYPrice += parseFloat(item.yprice)
+        ypriceSum += parseFloat(item.yprice)
       })
       this.movieselected.map((item) => {
-        this.showAllSumPrice += parseFloat(item.price)
+        priceSum += parseFloat(item.price)
       })
-      this.movieselected
+      // this.movieselected
       if (!this.isFirstMilk) {
-        this.showAllSumYPrice += parseFloat(this.milkPrice) * this.milkSelected.length
-        this.showAllSumPrice += parseFloat(this.milkPrice) * this.milkSelected.length
+        ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+        priceSum += parseFloat(this.milkPrice) * this.milkSelected.length
         // 非首次牛奶加上牛奶价格
       }
-      this.showAllSumYPrice.toFixed(2)
-      this.showAllSumPrice.toFixed(2)
+      this.showAllSumYPrice = ypriceSum.toFixed(2)
+      this.showAllSumPrice = priceSum.toFixed(2)
     },
     closeWin() {
       const w = remote.getCurrentWindow()
@@ -505,6 +508,10 @@ export default {
       }
     },
     endOrder() {
+      if (this.movieselected.length == 0 && this.milkSelected == 0) {
+        this.$message.error('您未选择菜品！')
+        return
+      }
       // 优惠计算后价格
       // eslint-disable-next-line no-unused-vars
       let ypriceSum = parseFloat(0)
