@@ -55,7 +55,6 @@
 
         </el-aside>
         <el-container>
-          <!-- <el-header>Header</el-header> -->
           <!-- 主界面 -->
           <el-main style="line-height:36px;background:white;">
             <el-row>
@@ -219,6 +218,38 @@
         </el-row>
       </span>
     </el-dialog>
+    <el-dialog title="人员身份"
+      :visible.sync="pictureDialogVisible"
+      width="30%"
+      :before-close="handleClose">
+      <el-row>
+        <el-col :span="12">
+          <el-image style="width: 200px;height: 240px;margin-left: 10px;"
+            :src="configDataLocal.baseUrl+'/Files/Icon/pc/'+personPicUrl"></el-image>
+          <el-tag style="font-size: 36px;height: 40px; width: 220px;text-align: center;">
+            {{this.nowOrderManName}}
+          </el-tag>
+        </el-col>
+        <el-col :span="12">
+          <el-row>
+            <el-button type="primary"
+              style="width: 160px;height: 60px;margin-top: 20px;margin-left: 36px;font-size:30px"
+              @click="picShowConfirm()">确 定</el-button>
+          </el-row>
+          <el-row>
+            <el-button type="danger"
+              @click="picShowCancel()"
+              style="width: 160px;height: 60px;margin-top: 20px;margin-left: 36px;font-size:30px">取 消</el-button>
+
+          </el-row>
+        </el-col>
+      </el-row>
+      <span slot="footer"
+        class="dialog-footer">
+
+      </span>
+    </el-dialog>
+
   </div>
 
 </template>
@@ -276,7 +307,9 @@ export default {
       isDutyVaild: false,
       isMilkButtonShow: true,
       showAllSumYPrice: parseFloat(0.00),
-      showAllSumPrice: parseFloat(0.00)
+      showAllSumPrice: parseFloat(0.00),
+      pictureDialogVisible: false,
+      personPicUrl: ''
     }
   },
   created: function () {
@@ -326,6 +359,13 @@ export default {
 
   methods: {
     test2() {
+    },
+    picShowConfirm() {
+      this.pictureDialogVisible = false
+    },
+    picShowCancel() {
+      this.pictureDialogVisible = false
+      this.dialogVisible = true
     },
     showAllSumPriceFun() {
       console.log('当前菜品和牛奶', this.milkSelected, this.movieselected)
@@ -766,6 +806,7 @@ export default {
               if (userData.isDutyVaild) {
                 this.enterOrder_noduty(timeRes)
                 this.dialogVisible = false
+                this.pictureDialogVisible = true
               } else {
                 this.$message.error('非值班人员不得在非用餐时间用餐')
               }
@@ -778,6 +819,7 @@ export default {
             if (userRes.isGetVaildUser) {
               this.enterOrder_noduty(res)
               this.dialogVisible = false// 取消遮罩层
+              this.pictureDialogVisible = true
             }
           })
         }
@@ -903,6 +945,7 @@ export default {
           this.isFirstTime = res.data.IsFristOrderMeal// res.data.IsFristOrderMeal
           this.isFirstMilk = res.data.IsFristMilk
           this.nowTimeMealBool = inOrderTimeBool
+          this.personPicUrl = res.data.PcInfo.Icon
           console.log('this.isFirstMilkthis.isFirstMilk', this.isFirstMilk)
           isGetVaildUser = true
           this.mainLoading = false// 取消loading
