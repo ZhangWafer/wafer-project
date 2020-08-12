@@ -4,19 +4,20 @@
       <el-container>
         <!-- 侧界面 -->
         <el-aside style="1ine-height:30px;background:rgb(251,251,251);position:relative;"
-          width="280px">
+          width="310px">
           <el-row>
-            <el-tag style="margin-top:10px;font-size:22px;width:200px;"
-              type="success">已点菜单</el-tag>
+            <!-- <el-tag style="margin-top:10px;font-size:22px;width:200px;"
+              type="success">已点菜单</el-tag> -->
+            <h3 style="color:white;font-size:30px">已点菜单</h3>
           </el-row>
-          <el-row style="margin-top:10px">
+          <el-row style="margin-top:10px；background:#409EFF;!important">
             <el-col :span="24"
               v-for="(item,index) in movieselected"
               :key="'orderdFood'+index"
               style="height:30px;margin-bottom:18px;">
               <el-tag :key="item.foodName"
                 @close="handleClose(item.foodName)"
-                style="font-size:22px;width:220px;font-weight:bold"
+                style="font-size:30px;width:260px;font-weight:bold"
                 closable
                 :disable-transitions="false">
                 {{item.foodName}}
@@ -31,7 +32,7 @@
               style="height:30px;margin-bottom:18px;">
               <el-tag :key="item.foodName"
                 @close="handleMilkClose()"
-                style="font-size:22px;width:220px;font-weight:bold"
+                style="font-size:30px;width:260px;font-weight:bold"
                 closable
                 :disable-transitions="false">
                 {{item.foodName}}
@@ -42,11 +43,11 @@
           <el-row style="position:absolute;bottom:0px;width:100%;">
             <el-tag type="success"
               style="width:100%;height:100px;font-size:24px">
-              <p style="margin-top:10px;font-size:20px">已点价格：{{showAllSumPrice}}</p>
-              <p style="font-size:20px">已点优惠价格：{{showAllSumYPrice}}</p>
+              <p style="margin-top:10px;font-size:26px">已点价格：{{showAllSumPrice}}</p>
+              <p style="font-size:26px">已点优惠价格：{{showAllSumYPrice}}</p>
             </el-tag>
-            <el-button type="warning"
-              style="width:100%;height:100px;font-size:24px"
+            <el-button type="success"
+              style="width:80%;height:80px;margin-bottom:10px;font-size:38px;font-weight:bold;"
               @click="endOrder">
               结算
             </el-button>
@@ -58,15 +59,15 @@
           <!-- 主界面 -->
           <el-main style="line-height:36px;background:white;">
             <el-row>
-              <el-col :span="4.8"
+              <el-col :span="5.6"
                 style="margin-left:8px;">
-                <el-button type="success"
+                <el-button type="primary"
                   round
                   v-if="this.isMilkButtonShow"
                   class="buttonclass"
                   @click="addMilkFun()">
                   <el-row>
-                    <el-image style="width: 120px; height: 60px"
+                    <el-image style="width: 200px; height: 80px"
                       :src="mikPic"></el-image>
                   </el-row>
 
@@ -77,27 +78,29 @@
                   </el-row>
                   <el-row style="margin-top:6px;margin-left:-18px">
                     <el-col :span="12">
-                      <el-tag type="success"> 价格：{{this.milkPrice}}</el-tag>
+                      <el-tag type="success"
+                        style="font-size:16px"> 价格：{{milkPrice}}</el-tag>
                     </el-col>
 
                     <el-col :span="12">
-                      <el-tag type="warning"> 优惠价格：0</el-tag>
+                      <el-tag type="warning"
+                        style="font-size:16px"> 优惠价格：0</el-tag>
                     </el-col>
                   </el-row>
                 </el-button>
               </el-col>
               <el-col v-for="(item,index) in movie"
                 :key="'noorderdFood'+index"
-                :span="4.8"
+                :span="5.6"
                 style="margin-left:8px">
-                <el-button type="success"
+                <el-button type="primary"
                   round
                   class="buttonclass"
                   :disabled="!switchValue[index]"
                   @click="addFun(item.Name,item.Price,item.PcPrice,item.Id)">
                   <div style="">
                     <el-row>
-                      <el-image style="width: 120px; height: 60px"
+                      <el-image style="width: 200px; height: 80px"
                         :src="item.Icon"></el-image>
                     </el-row>
                     <el-row style="margin-top:6px">
@@ -107,10 +110,12 @@
                     </el-row>
                     <el-row :style="item.Price.length+item.PcPrice.length<4?'margin-top:6px;margin-left:-10px':'margin-top:6px;margin-left:-18px'">
                       <el-col :span="12">
-                        <el-tag type="success"> 价格：{{item.Price}}</el-tag>
+                        <el-tag type="success"
+                          style="font-size:16px"> 价格：{{item.Price}}</el-tag>
                       </el-col>
                       <el-col :span="12">
-                        <el-tag type="warning"> 优惠价格：{{item.PcPrice}}</el-tag>
+                        <el-tag type="warning"
+                          style="font-size:16px"> 优惠价格：{{item.PcPrice}}</el-tag>
                       </el-col>
                     </el-row>
                   </div>
@@ -121,7 +126,8 @@
           <el-footer style="background-color:#ECF5FF;height:100px">
             <el-row style="margin-top:26px">
               <el-col :span="9">
-                <el-tag style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
+                <el-tag type="warning"
+                  style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
               <el-col :span="4">
                 <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
@@ -132,7 +138,8 @@
                 </el-button>
               </el-col>
               <el-col :span="9">
-                <el-tag style="height:44px;font-size:32px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+                <el-tag type="warning"
+                  style="height:44px;font-size:32px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
               </el-col>
               <el-col :span="2">
                 <el-button @click="settingPageBool=true"
@@ -248,7 +255,7 @@ export default {
       isFirstTime: true,
       isMilk: false, // isMilk确认是否为牛奶专窗，
       isFirstMilk: 'false', // isFirstMilk确认这个人之前是否点过牛奶，是否首次点奶
-      milkPrice: '',
+      milkPrice: 0.00,
       milkSelected: [],
       configDataLocal: {
         bt: '',
@@ -275,17 +282,15 @@ export default {
   created: function () {
     console.log('created')
   },
-  async mounted() {
+  mounted() {
     console.log('mounted')
 
     // eslint-disable-next-line no-unused-vars
     // window.sonWindow = window.open('/#/cook')
 
     // 读取配置文件
-    this.readConfig()
-    // this.childWin = window.open('/#/cook')
-    // // 取牛奶价格
-    this.getMilkPrice()
+    // eslint-disable-next-line no-unused-vars
+    const readconfigPromiss = this.readConfig()
 
     window.addEventListener('message', (msg) => {
       console.log('接收到的消息,', msg.data)
@@ -298,6 +303,9 @@ export default {
         }
       }
     })
+    // this.childWin = window.open('/#/cook')
+    // // 取牛奶价格
+    // eslint-disable-next-line no-unused-vars
   },
   updated() {
     console.log('updated')
@@ -374,15 +382,13 @@ export default {
         this.showAllSumPriceFun()
       }
     },
-    getMilkPrice() {
-      axios.get('Interface/Common/GetMilkPrice.ashx').then(res => {
-        this.milkPrice = res.data.Price
-      })
+    async getMilkPrice() {
+      return axios.get('Interface/Common/GetMilkPrice.ashx')
     },
-    readConfig() {
+    async readConfig() {
       console.log('开始读config')
       let aaa = null
-      fs.readFile('d:/config.json', 'utf-8', (err, data) => {
+      return fs.readFile('d:/config.json', 'utf-8', (err, data) => {
         if (err) {
           console.log('文件读取失败', err)
         } else {
@@ -399,7 +405,7 @@ export default {
           console.log('this.configDataLocal.baseUrl', this.configDataLocal.baseUrl)
           console.log('读完config')
           // 设置axios-url
-          axios.defaults.baseURL = this.configDataLocal.baseUrl
+          axios.defaults.baseURL = aaa.baseUrl
           this.timeJudge().then((timebool) => {
             this.nowTimeMealBool = timebool
             this.urlStr[0] = this.configDataLocal.baseUrl.split('http://')[1].split(':')[0]
@@ -637,7 +643,12 @@ export default {
 
           // 价格加上牛奶价格
           if (this.isFirstMilk == false) {
-            payPrice += parseFloat(parseFloat(this.milkPrice) * this.milkSelected.length)
+            if (typeof (this.milkPrice) != 'number') {
+              this.$message.error('牛奶价格有误！')
+              // eslint-disable-next-line no-unused-vars
+              const milkPromiss = this.getMilkPrice()
+            }
+            payPrice += parseFloat(this.milkPrice) * this.milkSelected.length
           }
 
           // 价钱取整处理
@@ -670,7 +681,7 @@ export default {
                 this.showAllSumPrice = parseFloat(0)
                 this.nowOrderManName = ''
                 this.nowOrderManLeftMoney = parseFloat(0)
-              }, 1500)
+              }, 1000)
             }
           }).catch(() => {
             // 取消
@@ -717,6 +728,16 @@ export default {
       this.childWin.postMessage(fatherData)
     },
     enterOrder() {
+      if (this.milkPrice == 0.00) {
+        const getMilkPricePromiss = this.getMilkPrice()
+        getMilkPricePromiss.then(res => {
+          this.milkPrice = parseFloat(res.data.Price)
+        }).catch(() => {
+          // 取消
+          this.$message.error('网络错误！请检查网络连接！')
+        })
+      }
+
       const inOrderTimeBool = this.timeJudge()
       inOrderTimeBool.then((res) => {
         // 如果不是牛奶专窗
@@ -825,6 +846,8 @@ export default {
           sn: this.configDataLocal.snNumber, // this.SNid,
           cookbookEnum: timebool // this.getMeadlId,
         }
+      }).catch(() => {
+        this.$message.error('网络错误！请检查网络连接！')
       })
     },
     async getUserData(inOrderTimeBool) {
@@ -1030,15 +1053,28 @@ export default {
 
 <style>
 .buttonclass {
-    font: Jwhite;
-    width: 190px;
+    font: white;
+    width: 236px !important;
+    background: #521de4 !important;
+    height: 190px;
+    margin-bottom: 6px;
 }
 </style>
 
 <style>
+.el-tag--light {
+    color: white !important;
+    background: #521de4 !important;
+    border-color: #521de4 !important;
+}
+.el-tag--warning {
+    color: white !important;
+    background: #e6a23c !important;
+    border-color: #e6a23c !important;
+}
 .el-button--success {
-    border: #87ea56;
-    background-color: #87ea56;
+    border: #521de4;
+    background-color: #521de4;
 }
 /* .el-button--warning {
     border: #fb7d63;
@@ -1046,18 +1082,18 @@ export default {
 } */
 .el-header {
     /* background: rgb(236, 245, 255); */
-    background: rgb(101, 174, 255) !important;
+    background: black !important;
 }
 .el-footer {
     /* background-color: #b3c0d1; */
-    background: #87ea56 !important;
+    background: #e6a23c !important;
     color: #333;
     text-align: center;
     line-height: 60px;
 }
 
 .el-aside {
-    background-color: #d3dce6;
+    background-color: black !important;
     color: #333;
     text-align: center;
     line-height: 35px;
@@ -1065,7 +1101,7 @@ export default {
 }
 
 .el-main {
-    background-color: #ffffeb !important;
+    background-color: black !important;
     color: #333;
     text-align: center;
     line-height: 160px;

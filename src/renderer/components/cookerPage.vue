@@ -2,7 +2,7 @@
   <div>
     <el-container>
       <el-container>
-        <el-aside width="200px"
+        <el-aside width="260px"
           style="background:#FBFBFB;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="success"
@@ -16,7 +16,7 @@
               :key="'orderdFood'+index"
               style="height:30px;margin-bottom:10px;">
               <el-tag :key="item.foodName"
-                style="font-size:18px;font-weight:bold;width:160px;"
+                style="font-size:26px;font-weight:bold;width:230px;"
                 :disable-transitions="false">
                 {{item.foodName}}
               </el-tag>
@@ -29,7 +29,7 @@
           </el-row> -->
 
         </el-aside>
-        <el-aside width="200px"
+        <el-aside width="260px"
           style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="warning"
@@ -43,7 +43,7 @@
               :key="'orderdFood2'+index"
               style="height:30px;margin-bottom:10px;">
               <el-tag :key="item.foodName"
-                style="font-size:18px;font-weight:bold;width:160px;"
+                style="font-size:26px;font-weight:bold;width:230px;"
                 :disable-transitions="false">
                 {{item.foodName}}
               </el-tag>
@@ -58,7 +58,7 @@
           <el-row style="position:absolute;bottom:0;">
             <el-button @click="popFoodSelected"
               type="success"
-              style="margin-left:22px;margin-bottom:10px;width:160px;font-size:22px;height:80px">
+              style="margin-left:22px;margin-bottom:10px;width:220px;font-size:22px;height:80px">
               已打菜
             </el-button>
           </el-row>
@@ -79,12 +79,12 @@
           <el-main>
             <el-row>
               <el-col v-for="(item,index) in cookBook"
-                style="margin-left:13px"
+                style="margin-left:8px"
                 :key="item.index"
                 :span="4.8">
-                <el-tag style="font-size:22px;height:190px;width:158px">
+                <el-tag style="font-size:22px;height:190px;width:150px">
                   <el-row style="margin-top:14px">
-                    <el-image style="width: 140px; height: 100px"
+                    <el-image style="width: 130px; height: 100px"
                       :src="item.Icon"></el-image>
                   </el-row>
                   <el-row :style="item.Name.length>6?'font-size:18px;font-weight:bold':'font-size:22px;font-weight:bold'">{{item.Name}}</el-row>
@@ -334,7 +334,7 @@ export default {
     background-color: #fffff8;
     color: #333;
     text-align: center;
-    line-height: 160px;
+    line-height: 90px;
     height: 520px;
 }
 
