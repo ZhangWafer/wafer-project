@@ -364,6 +364,16 @@ export default {
   },
 
   methods: {// 余额不足，请尽快充值
+    testVoice2(text = '已欠费，请尽快充值', pitch = 2, lang = 'zh-CN', rate = 1, volume = 200, closeSpeakTime = 5000) {
+      const msg = Object.assign(new SpeechSynthesisUtterance(), { text, lang, volume, rate, pitch })
+      speechSynthesis.speak(msg)
+      // 关闭语音
+      // if (closeSpeakTime) {
+      //   setTimeout(() => {
+      //     // speechSynthesis.cancel(msg)
+      //   }, closeSpeakTime)
+      // }
+    },
     testVoice(text = '余额不足，请尽快充值', pitch = 2, lang = 'zh-CN', rate = 1, volume = 200, closeSpeakTime = 5000) {
       const msg = Object.assign(new SpeechSynthesisUtterance(), { text, lang, volume, rate, pitch })
       speechSynthesis.speak(msg)
@@ -798,11 +808,29 @@ export default {
 
       const inOrderTimeBool = this.timeJudge()
       inOrderTimeBool.then((res) => {
-        // 如果不是牛奶专窗
-        if (res == 'Lunch' || res == 'Supper') {
-          if (this.configDataLocal.milkMachine == 'false') {
-            // 如果是早餐，则显示牛奶
+        // 如果是周末或者晚上则不提供牛奶
+        const nowDayNum = new Date().getDay()
+        if (nowDayNum == 6 || nowDayNum == 7) {
+          console.log('今天是周末')
+          this.isMilkButtonShow = false
+        } else {
+          console.log('今天是工作日')
+          this.isMilkButtonShow = true
+          const nowDayHour = new Date().getHours()
+          console.log('现在小时数', nowDayHour)
+          if (nowDayHour >= 16) {
+            console.log('现在是晚上')
             this.isMilkButtonShow = false
+          } else {
+            this.isMilkButtonShow = true
+            // 如果不是牛奶专窗
+            if (res == 'Lunch' || res == 'Supper') {
+              // 晚上不提供牛奶
+              this.isMilkButtonShow = true
+              if (this.configDataLocal.milkMachine == 'false') {
+                this.isMilkButtonShow = false
+              }
+            }
           }
         }
 
@@ -915,8 +943,12 @@ export default {
       const ppromiss = this.getUserDataPromiss(inOrderTimeBool)
       let isGetVaildUser = false
       const ppromiss2 = ppromiss.then(res => {
-        console.log(11111111111111111111)
         if (res.data != '') {
+          if (parseFloat(res.data.Arrearage) != 0) {
+            this.$message.error('已欠费，请尽快充值')
+            this.testVoice2()
+            return
+          }
           console.log('userData', res, this.configDataLocal.snNumber)
           // 节假日判断
           if (res.data.HolidaysPreferential.length == 0) {
