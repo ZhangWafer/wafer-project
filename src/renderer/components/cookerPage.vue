@@ -2,7 +2,7 @@
   <div>
     <el-container>
       <el-container>
-        <el-aside width="260px"
+        <el-aside width="460px"
           style="background:#FBFBFB;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="success"
@@ -10,13 +10,19 @@
               本次菜品
             </el-tag>
           </el-row>
+          <el-row>
+            <el-tag type="success"
+              style="width:200px;font-size:22px">
+              点餐人：{{nowOrderManName}}
+            </el-tag>
+          </el-row>
           <el-row style="margin-top:10px">
             <el-col :span="24"
               v-for="(item,index) in foodSelected1"
               :key="'orderdFood'+index"
-              style="height:30px;margin-bottom:10px;">
+              style="height:30px;margin-bottom:20px;">
               <el-tag :key="item.foodName"
-                style="font-size:26px;font-weight:bold;width:230px;"
+                style="font-size:36px;font-weight:bold;width:430px;height: 40px;"
                 :disable-transitions="false">
                 {{item.foodName}}
               </el-tag>
@@ -28,8 +34,8 @@
             </el-tag>
           </el-row> -->
 
-        </el-aside>
-        <el-aside width="260px"
+          <!-- </el-aside> -->
+          <!-- <el-aside width="260px"
           style="background:#FEFAFF;margin-left:5px;margin-right:5px;position:relative;height:740px">
           <el-row style="margin-top:10px">
             <el-tag type="warning"
@@ -48,7 +54,7 @@
                 {{item.foodName}}
               </el-tag>
             </el-col>
-          </el-row>
+          </el-row> -->
 
           <!-- <el-row style="position:absolute;bottom:0;">
             <el-tag style="margin-left:48px;margin-bottom:100px;width:100px;font-size:22px">
@@ -58,7 +64,7 @@
           <el-row style="position:absolute;bottom:0;">
             <el-button @click="popFoodSelected"
               type="success"
-              style="margin-left:22px;margin-bottom:10px;width:220px;font-size:22px;height:80px">
+              style="margin-left:30px;margin-bottom:10px;width:420px;font-size:22px;height:80px">
               已打菜
             </el-button>
           </el-row>
@@ -128,7 +134,9 @@ export default {
       isMilk2: false,
       CafeteriaId: '',
       nowTimeMealBool: '',
-      axiosUrl: ''
+      axiosUrl: '',
+      nowOrderManName: [],
+      bigNameArray: []
     }
   },
   mounted: function () {
@@ -155,8 +163,8 @@ export default {
         this.enableSwitch = msg.data.enter
         this.changeSwitchValue()
       } else {
-        this.bigFoodSelected.push(msg.data.foodSelected)
-
+        this.bigFoodSelected.push(msg.data.foodSelected)// 把每次的菜品组塞进去
+        this.bigNameArray.push(msg.data.nowOrderManName)// 把每次的人名塞进去
         if (this.bigFoodSelected[0] === undefined) {
           console.log('undefinde')
           this.bigFoodSelected.pop(undefined)
@@ -164,9 +172,10 @@ export default {
 
         console.log('this.bigFoodSelected', this.bigFoodSelected)
         // 菜品队列小于两个往右挪
-        if (this.bigFoodSelected.length <= 2) {
-          this.foodSelected2 = this.foodSelected1
+        if (this.bigFoodSelected.length <= 1) {
+          // this.foodSelected2 = this.foodSelected1
           this.foodSelected1 = this.bigFoodSelected[this.bigFoodSelected.length - 1]
+          this.nowOrderManName = this.bigNameArray[this.bigNameArray.length - 1]
         }
 
         this.isMilk2 = this.isMilk1
@@ -243,8 +252,10 @@ export default {
     },
     popFoodSelected() {
       this.bigFoodSelected.shift()
+      this.bigNameArray.shift()
       this.foodSelected2 = this.foodSelected1
-      this.foodSelected1 = this.bigFoodSelected[1]
+      this.foodSelected1 = this.bigFoodSelected[0]
+      this.nowOrderManName = this.bigNameArray[1]
 
       console.log('this.bigFoodSelected', this.bigFoodSelected)
     },

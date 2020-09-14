@@ -47,7 +47,7 @@
               <p style="font-size:26px">已点优惠价格：{{showAllSumYPrice}}</p>
             </el-tag>
             <el-button type="success"
-              style="width:80%;height:80px;margin-bottom:10px;font-size:38px;font-weight:bold;"
+              style="width:80%;height:80px;margin-bottom:10px;font-size:38px;font-weight:bold;background:#3de03d!important;"
               @click="endOrder">
               结算
             </el-button>
@@ -55,6 +55,32 @@
 
         </el-aside>
         <el-container>
+          <el-header style="background-color:#ECF5FF;height:94px">
+            <el-row style="margin-top:26px">
+              <el-col :span="9">
+                <el-tag type="warning"
+                  style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
+              </el-col>
+              <el-col :span="4">
+                <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
+                  type="danger"
+                  round
+                  @click="exitOrderFood">
+                  退出
+                </el-button>
+              </el-col>
+              <el-col :span="9">
+                <el-tag type="warning"
+                  style="height:44px;font-size:32px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
+              </el-col>
+              <el-col :span="2">
+                <el-button @click="settingPageBool=true"
+                  style="margin-right:-70px">
+                  <i class="el-icon-s-tools"></i>
+                </el-button>
+              </el-col>
+            </el-row>
+          </el-header>
           <!-- 主界面 -->
           <el-main style="line-height:36px;background:white;">
             <el-row>
@@ -122,32 +148,7 @@
               </el-col>
             </el-row>
           </el-main>
-          <el-footer style="background-color:#ECF5FF;height:100px">
-            <el-row style="margin-top:26px">
-              <el-col :span="9">
-                <el-tag type="warning"
-                  style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
-              </el-col>
-              <el-col :span="4">
-                <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
-                  type="danger"
-                  round
-                  @click="exitOrderFood">
-                  退出
-                </el-button>
-              </el-col>
-              <el-col :span="9">
-                <el-tag type="warning"
-                  style="height:44px;font-size:32px">当前余额：{{nowOrderManLeftMoney}}元</el-tag>
-              </el-col>
-              <el-col :span="2">
-                <el-button @click="settingPageBool=true"
-                  style="margin-right:-70px">
-                  <i class="el-icon-s-tools"></i>
-                </el-button>
-              </el-col>
-            </el-row>
-          </el-footer>
+
         </el-container>
       </el-container>
     </el-container>
@@ -317,7 +318,6 @@ export default {
   },
   mounted() {
     console.log('mounted')
-
     // eslint-disable-next-line no-unused-vars
     // window.sonWindow = window.open('/#/cook')
 
@@ -703,7 +703,7 @@ export default {
             cancelButtonClass: 'cancelButtonClass'
           }).then(() => {
             // 判断扣费后是否足够钱
-            if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < 0) {
+            if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(-18)) {
               this.$message.error('抱歉！您的余额不足')
             } else {
               // 确定
@@ -740,7 +740,7 @@ export default {
     sendMenuMeg() {
       // 拼接成一个大数组
       const bigSelected = [...this.movieselected, ...this.milkSelected]
-      this.fatherDataSend(false, bigSelected, this.isMilk)
+      this.fatherDataSend(false, bigSelected, this.isMilk, this.nowOrderManName)
       this.movieselected = []
       this.milkSelected = []
     },
@@ -752,11 +752,12 @@ export default {
         this.childWin.postMessage(nowTimeData)
       })
     },
-    fatherDataSend(boolValue, foodSelected, isMilk) {
+    fatherDataSend(boolValue, foodSelected, isMilk, name) {
       var fatherData = {
         enter: boolValue,
         foodSelected: foodSelected,
-        isMilk: isMilk
+        isMilk: isMilk,
+        nowOrderManName: name
       }
       this.childWin.postMessage(fatherData)
     },
@@ -1125,7 +1126,10 @@ export default {
 } */
 .el-header {
     /* background: rgb(236, 245, 255); */
-    background: black !important;
+    background: #e6a23c !important;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
 }
 .el-footer {
     /* background-color: #b3c0d1; */
