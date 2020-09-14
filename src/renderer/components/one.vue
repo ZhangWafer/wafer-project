@@ -42,9 +42,15 @@
 
           <el-row style="position:absolute;bottom:0px;width:100%;">
             <el-tag type="success"
-              style="width:100%;height:100px;font-size:24px">
-              <p style="margin-top:10px;font-size:26px">已点价格：{{showAllSumPrice}}</p>
-              <p style="font-size:26px">已点优惠价格：{{showAllSumYPrice}}</p>
+              v-if="!isFirstTime"
+              style="width:100%;height:40px;font-size:28px">
+              已点价格：{{showAllSumPrice}}
+
+            </el-tag>
+            <el-tag type="success"
+              v-if="isFirstTime"
+              style="width:100%;height:40px;font-size:28px">
+              已点优惠价格：{{showAllSumYPrice}}
             </el-tag>
             <el-button type="success"
               style="width:80%;height:80px;margin-bottom:10px;font-size:38px;font-weight:bold;background:#3de03d!important;"
@@ -357,7 +363,17 @@ export default {
     // }
   },
 
-  methods: {
+  methods: {// 余额不足，请尽快充值
+    testVoice(text = '余额不足，请尽快充值', pitch = 2, lang = 'zh-CN', rate = 1, volume = 200, closeSpeakTime = 5000) {
+      const msg = Object.assign(new SpeechSynthesisUtterance(), { text, lang, volume, rate, pitch })
+      speechSynthesis.speak(msg)
+      // 关闭语音
+      // if (closeSpeakTime) {
+      //   setTimeout(() => {
+      //     // speechSynthesis.cancel(msg)
+      //   }, closeSpeakTime)
+      // }
+    },
     test2() {
     },
     picShowConfirm() {
@@ -704,6 +720,7 @@ export default {
           }).then(() => {
             // 判断扣费后是否足够钱
             if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(-18)) {
+              this.testVoice()
               this.$message.error('抱歉！您的余额不足')
             } else {
               // 确定
