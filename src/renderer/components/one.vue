@@ -68,7 +68,7 @@
                   style="height:44px;font-size:32px">当前点餐人：{{nowOrderManName}}</el-tag>
               </el-col>
               <el-col :span="4">
-                <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;"
+                <el-button style="font-size:30px;width:160px;height:70px;margin-top:-10px;vertical-align:middle;background:red!important;"
                   type="danger"
                   round
                   @click="exitOrderFood">

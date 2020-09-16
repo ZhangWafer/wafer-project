@@ -12,7 +12,7 @@
           </el-row>
           <el-row>
             <el-tag type="success"
-              style="width:200px;font-size:22px">
+              style="width:300px;font-size:36px;height:40px">
               点餐人：{{nowOrderManName}}
             </el-tag>
           </el-row>
@@ -63,6 +63,7 @@
           </el-row> -->
           <el-row style="position:absolute;bottom:0;">
             <el-button @click="popFoodSelected"
+              :loading="buttonLoadingBool"
               type="success"
               style="margin-left:30px;margin-bottom:10px;width:420px;font-size:22px;height:80px">
               已打菜
@@ -136,7 +137,8 @@ export default {
       nowTimeMealBool: '',
       axiosUrl: '',
       nowOrderManName: [],
-      bigNameArray: []
+      bigNameArray: [],
+      buttonLoadingBool: false
     }
   },
   mounted: function () {
@@ -168,6 +170,10 @@ export default {
         if (this.bigFoodSelected[0] === undefined) {
           console.log('undefinde')
           this.bigFoodSelected.pop(undefined)
+        }
+        if (this.bigNameArray[0] === undefined) {
+          console.log('undefinde')
+          this.bigNameArray.pop(undefined)
         }
 
         console.log('this.bigFoodSelected', this.bigFoodSelected)
@@ -251,11 +257,19 @@ export default {
       }
     },
     popFoodSelected() {
+      this.buttonLoadingBool = true
+      setTimeout(() => {
+        this.buttonLoadingBool = false
+      }, 5000)
       this.bigFoodSelected.shift()
       this.bigNameArray.shift()
       this.foodSelected2 = this.foodSelected1
       this.foodSelected1 = this.bigFoodSelected[0]
-      this.nowOrderManName = this.bigNameArray[1]
+      if (this.bigNameArray[0] === undefined) {
+        this.nowOrderManName = this.bigNameArray[1]
+      } else {
+        this.nowOrderManName = this.bigNameArray[0]
+      }
 
       console.log('this.bigFoodSelected', this.bigFoodSelected)
     },
