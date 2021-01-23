@@ -273,6 +273,7 @@ export default {
   data: function () {
     return {
       ownMoneyBool: false, // 欠费标志
+      isTQorXJbool: false, // 特勤巡警标志
       settingPageBool: false,
       dialogVisible: true,
       movieselected: [],
@@ -620,9 +621,14 @@ export default {
             })
           }
 
-          // 加上牛奶价格
-          if (!this.isFirstMilk) {
+          // 如果是特勤或巡警都要牛奶加钱
+          if (this.isTQorXJbool) {
             ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+          } else {
+            // 加上牛奶价格
+            if (!this.isFirstMilk) {
+              ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+            }
           }
 
           // 价钱取整处理
@@ -655,6 +661,9 @@ export default {
                 this.showAllSumPrice = parseFloat(0)
                 this.nowOrderManName = ''
                 this.nowOrderManLeftMoney = parseFloat(0)
+
+                // 巡警特勤牛奶标志位复位
+                this.isTQorXJbool = false
               }, 1500)
             }
           }).catch(() => {
@@ -707,14 +716,18 @@ export default {
 
           console.log('this.milkSelected.length', this.milkSelected.length)
 
-          // 价格加上牛奶价格
-          if (this.isFirstMilk == false) {
-            if (typeof (this.milkPrice) != 'number') {
-              this.$message.error('牛奶价格有误！')
-              // eslint-disable-next-line no-unused-vars
-              const milkPromiss = this.getMilkPrice()
-            }
+          if (this.isTQorXJbool) {
             payPrice += parseFloat(this.milkPrice) * this.milkSelected.length
+          } else {
+            // 价格加上牛奶价格
+            if (this.isFirstMilk == false) {
+              if (typeof (this.milkPrice) != 'number') {
+                this.$message.error('牛奶价格有误！')
+                // eslint-disable-next-line no-unused-vars
+                const milkPromiss = this.getMilkPrice()
+              }
+              payPrice += parseFloat(this.milkPrice) * this.milkSelected.length
+            }
           }
 
           // 价钱取整处理
@@ -728,6 +741,7 @@ export default {
             customMessgeBoxClass: 'customMessgeBoxClass',
             cancelButtonClass: 'cancelButtonClass'
           }).then(() => {
+            // 如果有欠费就走这个分支
             if (this.ownMoneyBool) {
               // 判断扣费后是否足够钱
               if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(0)) {
@@ -741,10 +755,14 @@ export default {
                 this.showAllSumPrice = parseFloat(0)
                 this.nowOrderManName = ''
                 this.nowOrderManLeftMoney = parseFloat(0)
+
+                // 复位特勤巡警牛奶
+                this.isTQorXJbool = false
                 return
               }
             }
 
+            // 无欠费走这个分支
             // 判断扣费后是否足够钱
             if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(-18)) {
               this.testVoice()
@@ -765,6 +783,8 @@ export default {
                 this.showAllSumPrice = parseFloat(0)
                 this.nowOrderManName = ''
                 this.nowOrderManLeftMoney = parseFloat(0)
+                // 复位特勤巡警牛奶
+                this.isTQorXJbool = false
               }, 1000)
             }
           }).catch(() => {
@@ -886,30 +906,9 @@ export default {
             }
           })
         }
-
-        // // const afterGetUserData = this.getUserData(res)
-        // afterGetUserData.then((userData) => {
-        //   console.log('userData', this.timeBool)
-
-        //   //  判断值班人员是否有效
-        //   if (userData.isDutyVaild) {
-        //     const timeBoolPromiss = this.dutyTimeJudge()
-        //     timeBoolPromiss.then((timeRes) => {
-        //       // 判断当前时间是否为前后半小时时间内
-        //       if (timeRes) {
-        //         this.enterOrder_noduty(userData.timeBool)
-        //       } else {
-        //         this.$message.error('非值班人员不得在非用餐时间用餐')
-        //       }
-        //     })
-        //   } else {
-        //     this.$message.error('当前不是用餐时段')
-        //   }
-        // })
       })
 
       console.log(inOrderTimeBool)
-      // this.addData()
     },
 
     async enterOrder_noduty(inOrderTimeBool) {
@@ -966,6 +965,12 @@ export default {
             this.ownMoneyBool = true
             // return
           }
+
+          if (res.data.PcInfo.CategoryId == 4 || res.data.PcInfo.CategoryId == 5) {
+            console.log('属于特勤或巡警')
+            this.isTQorXJbool = true
+          }
+
           console.log('userData', res, this.configDataLocal.snNumber)
           // 节假日判断
           if (res.data.HolidaysPreferential.length == 0) {
