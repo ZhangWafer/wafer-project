@@ -272,6 +272,7 @@ Vue.prototype.$ajax = axios
 export default {
   data: function () {
     return {
+      ownMoneyBool: false, // 欠费标志
       settingPageBool: false,
       dialogVisible: true,
       movieselected: [],
@@ -635,7 +636,6 @@ export default {
             customMessgeBoxClass: 'customMessgeBoxClass',
             cancelButtonClass: 'cancelButtonClass'
           }).then(() => {
-            console.log('parseFloat(this.nowOrderManLeftMoney) - payPrice', parseFloat(this.nowOrderManLeftMoney) - payPrice)
             // 判断扣费后是否足够钱
             if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < 0) {
               this.$message.error('抱歉！您的余额不足')
@@ -728,6 +728,23 @@ export default {
             customMessgeBoxClass: 'customMessgeBoxClass',
             cancelButtonClass: 'cancelButtonClass'
           }).then(() => {
+            if (this.ownMoneyBool) {
+              // 判断扣费后是否足够钱
+              if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(0)) {
+                this.testVoice()
+                this.$message.error('抱歉！您的余额不足')
+                this.ownMoneyBool = false
+                this.mainLoading = false
+                // 开启遮罩层
+                this.dialogVisible = true
+                this.showAllSumYPrice = parseFloat(0)
+                this.showAllSumPrice = parseFloat(0)
+                this.nowOrderManName = ''
+                this.nowOrderManLeftMoney = parseFloat(0)
+                return
+              }
+            }
+
             // 判断扣费后是否足够钱
             if (parseFloat(this.nowOrderManLeftMoney) - this.allsum < parseFloat(-18)) {
               this.testVoice()
@@ -892,7 +909,6 @@ export default {
       })
 
       console.log(inOrderTimeBool)
-      // await this.getUserData(inOrderTimeBool)
       // this.addData()
     },
 
@@ -947,7 +963,8 @@ export default {
           if (parseFloat(res.data.Arrearage) != 0) {
             this.$message.error('已欠费，请尽快充值')
             this.testVoice2()
-            return
+            this.ownMoneyBool = true
+            // return
           }
           console.log('userData', res, this.configDataLocal.snNumber)
           // 节假日判断
