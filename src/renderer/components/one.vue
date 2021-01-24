@@ -408,10 +408,16 @@ export default {
         priceSum += parseFloat(item.price)
       })
       // this.movieselected
-      if (!this.isFirstMilk) {
+      // 巡警或特勤的话走这个分支
+      if (this.isTQorXJbool) {
         ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
         priceSum += parseFloat(this.milkPrice) * this.milkSelected.length
-        // 非首次牛奶加上牛奶价格
+      } else {
+        if (!this.isFirstMilk) {
+          ypriceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+          priceSum += parseFloat(this.milkPrice) * this.milkSelected.length
+          // 非首次牛奶加上牛奶价格
+        }
       }
       this.showAllSumYPrice = ypriceSum.toFixed(2)
       this.showAllSumPrice = priceSum.toFixed(2)
@@ -438,16 +444,23 @@ export default {
         this.$message.error('您点的菜品过多')
         return
       }
-      if (this.isFirstMilk) {
-        if (this.milkSelected.length == 1) {
-          this.$message.error('优惠价只可点一份')
+
+      // 巡警或特勤的话走这个分支
+      if (this.isTQorXJbool) {
+        this.milkSelected.push(milkJsonData)
+        this.showAllSumPriceFun()
+      } else {
+        if (this.isFirstMilk) {
+          if (this.milkSelected.length == 1) {
+            this.$message.error('优惠价只可点一份')
+          } else {
+            this.milkSelected.push(milkJsonData)
+            this.showAllSumPriceFun()
+          }
         } else {
           this.milkSelected.push(milkJsonData)
           this.showAllSumPriceFun()
         }
-      } else {
-        this.milkSelected.push(milkJsonData)
-        this.showAllSumPriceFun()
       }
     },
     async getMilkPrice() {
@@ -847,7 +860,7 @@ export default {
       inOrderTimeBool.then((res) => {
         // 如果是周末或者晚上则不提供牛奶
         const nowDayNum = new Date().getDay()
-        if (nowDayNum == 6 || nowDayNum == 7) {
+        if (nowDayNum == 6 || nowDayNum == 0) {
           console.log('今天是周末')
           this.isMilkButtonShow = false
         } else {
